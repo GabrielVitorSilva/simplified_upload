@@ -1,0 +1,151 @@
+### File Service - HTTP Request Examples
+### Use with REST Client extension (VSCode) or similar
+
+@baseUrl = http://localhost:3000/api/v1
+@apiKey = fsk_your_api_key_here
+
+###
+# ──────────────────────────────────────
+# HEALTH
+# ──────────────────────────────────────
+
+### Health Check (public, no auth required)
+GET {{baseUrl}}/health
+
+###
+# ──────────────────────────────────────
+# CLIENTS
+# ──────────────────────────────────────
+
+### Create a new API Client
+POST {{baseUrl}}/clients
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "name": "My Web App"
+}
+
+### List all Clients
+GET {{baseUrl}}/clients
+x-api-key: {{apiKey}}
+
+### Get Client by ID
+GET {{baseUrl}}/clients/CLIENT_UUID_HERE
+x-api-key: {{apiKey}}
+
+### Regenerate API Key for a Client
+PATCH {{baseUrl}}/clients/CLIENT_UUID_HERE/regenerate-key
+x-api-key: {{apiKey}}
+
+### Delete Client
+DELETE {{baseUrl}}/clients/CLIENT_UUID_HERE
+x-api-key: {{apiKey}}
+
+###
+# ──────────────────────────────────────
+# STORAGES
+# ──────────────────────────────────────
+
+### Create a Storage
+POST {{baseUrl}}/storages
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "name": "default",
+  "bucket": "my-app-files-bucket",
+  "region": "us-east-1"
+}
+
+### List all Storages
+GET {{baseUrl}}/storages
+x-api-key: {{apiKey}}
+
+### Get Storage by ID
+GET {{baseUrl}}/storages/STORAGE_UUID_HERE
+x-api-key: {{apiKey}}
+
+### Update Storage
+PUT {{baseUrl}}/storages/STORAGE_UUID_HERE
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "bucket": "my-new-bucket",
+  "region": "us-west-2"
+}
+
+### Delete Storage
+DELETE {{baseUrl}}/storages/STORAGE_UUID_HERE
+x-api-key: {{apiKey}}
+
+###
+# ──────────────────────────────────────
+# FILES
+# ──────────────────────────────────────
+
+### Step 1: Generate Presigned Upload URL
+POST {{baseUrl}}/files/upload-url
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "storageName": "default",
+  "folder": "avatars",
+  "fileName": "profile-photo.jpg",
+  "mimeType": "image/jpeg"
+}
+
+# Response example:
+# {
+#   "fileId": "550e8400-e29b-41d4-a716-446655440000",
+#   "key": "avatars/550e8400-e29b-41d4-a716-446655440000.jpg",
+#   "uploadUrl": "https://my-bucket.s3.amazonaws.com/avatars/...?X-Amz-Signature=...",
+#   "expiresIn": 300
+# }
+
+### Step 2: Upload directly to S3 using the presigned URL (client-side)
+# PUT <uploadUrl from previous response>
+# Content-Type: image/jpeg
+# (binary file body)
+
+### Get Presigned Download URL for a file
+GET {{baseUrl}}/files/FILE_UUID_HERE/url
+x-api-key: {{apiKey}}
+
+### List Files (with pagination)
+GET {{baseUrl}}/files?page=1&limit=10
+x-api-key: {{apiKey}}
+
+### List Files filtered by Storage
+GET {{baseUrl}}/files?storageId=STORAGE_UUID_HERE&page=1&limit=20
+x-api-key: {{apiKey}}
+
+### Delete a File
+DELETE {{baseUrl}}/files/FILE_UUID_HERE
+x-api-key: {{apiKey}}
+
+### Upload URL for a PDF document
+POST {{baseUrl}}/files/upload-url
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "storageName": "default",
+  "folder": "documents/contracts",
+  "fileName": "contract-2024.pdf",
+  "mimeType": "application/pdf"
+}
+
+### Upload URL for a video
+POST {{baseUrl}}/files/upload-url
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "storageName": "default",
+  "folder": "videos",
+  "fileName": "intro.mp4",
+  "mimeType": "video/mp4"
+}
