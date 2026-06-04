@@ -13,8 +13,10 @@ jest.mock("@aws-sdk/s3-request-presigner", () => ({
 const storageId = "550e8400-e29b-41d4-a716-446655440000";
 const fileId = "550e8400-e29b-41d4-a716-446655440001";
 const clientId = "550e8400-e29b-41d4-a716-446655440002";
+const adminClientId = "550e8400-e29b-41d4-a716-446655440003";
+const normalClientId = "550e8400-e29b-41d4-a716-446655440004";
 const adminClient = {
-  id: "admin-id",
+  id: adminClientId,
   name: "Admin",
   apiKeyHash: "admin-hash",
   active: true,
@@ -22,7 +24,7 @@ const adminClient = {
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
 };
 const normalClient = {
-  id: "normal-id",
+  id: normalClientId,
   name: "Normal",
   apiKeyHash: "normal-hash",
   active: true,
@@ -230,6 +232,19 @@ describe("App (e2e)", () => {
       expect(mockPrisma.client.delete).toHaveBeenCalledWith({
         where: { id: clientId },
       });
+    });
+
+    it("DELETE /api/v1/clients/:id returns 409 for the last active admin", async () => {
+      authenticateAs(adminClient);
+      mockPrisma.client.findUnique.mockResolvedValueOnce(adminClient);
+      mockPrisma.client.count.mockResolvedValueOnce(1);
+
+      await request(app.getHttpServer())
+        .delete(`/api/v1/clients/${adminClientId}`)
+        .set("x-api-key", "fsk_admin")
+        .expect(409);
+
+      expect(mockPrisma.client.delete).not.toHaveBeenCalled();
     });
   });
 

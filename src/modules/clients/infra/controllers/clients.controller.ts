@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Post,
   Patch,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -26,6 +27,13 @@ import { ListClientsUseCase } from "../../application/use-cases/list-clients.use
 import { GetClientUseCase } from "../../application/use-cases/get-client.use-case";
 import { RegenerateKeyUseCase } from "../../application/use-cases/regenerate-key.use-case";
 import { DeleteClientUseCase } from "../../application/use-cases/delete-client.use-case";
+
+interface AuthenticatedRequest {
+  client: {
+    id: string;
+    isAdmin: boolean;
+  };
+}
 
 @ApiTags("Clients")
 @ApiSecurity("x-api-key")
@@ -124,14 +132,21 @@ export class ClientsController {
   @ApiOperation({
     summary: "Delete a client",
     description:
-      "Admin endpoint. Deletes the API client, making its API key unusable. Get the id from GET /clients.",
+      "Admin endpoint. Deletes the API client, making its API key unusable. Get the id from GET /clients. The API blocks deleting the last active admin.",
   })
   @ApiParam({
     name: "id",
     description: "Client UUID. Get this value from GET /clients.",
   })
   @ApiResponse({ status: 204, description: "Client deleted" })
-  async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
+  @ApiResponse({
+    status: 409,
+    description: "Cannot delete the last active admin",
+  })
+  async remove(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() _request: AuthenticatedRequest,
+  ): Promise<void> {
     return this.deleteClientUseCase.execute(id);
   }
 }

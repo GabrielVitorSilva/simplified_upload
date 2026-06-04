@@ -28,6 +28,15 @@ export class PrismaClientRepository implements ClientRepository {
     return clients.map((c) => new ClientEntity(c));
   }
 
+  async countActiveAdmins(): Promise<number> {
+    return this.prisma.client.count({
+      where: {
+        active: true,
+        isAdmin: true,
+      },
+    });
+  }
+
   async update(id: string, data: UpdateClientData): Promise<ClientEntity> {
     const client = await this.prisma.client.update({ where: { id }, data });
     return new ClientEntity(client);

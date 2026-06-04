@@ -13,6 +13,7 @@ export interface ClientRepository {
   create(data: CreateClientData): Promise<ClientEntity>;
   findById(id: string): Promise<ClientEntity | null>;
   findAll(): Promise<ClientEntity[]>;
+  countActiveAdmins(): Promise<number>;
   update(id: string, data: UpdateClientData): Promise<ClientEntity>;
   delete(id: string): Promise<void>;
 }

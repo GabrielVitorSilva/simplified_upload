@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import {
   CLIENT_REPOSITORY,
   ClientRepository,
@@ -14,6 +19,14 @@ export class DeleteClientUseCase {
   async execute(id: string): Promise<void> {
     const existing = await this.clientRepository.findById(id);
     if (!existing) throw new NotFoundException(`Client "${id}" not found.`);
+
+    if (existing.isAdmin) {
+      const activeAdminCount = await this.clientRepository.countActiveAdmins();
+      if (activeAdminCount <= 1) {
+        throw new ConflictException("Cannot delete the last active admin.");
+      }
+    }
+
     await this.clientRepository.delete(id);
   }
 }
