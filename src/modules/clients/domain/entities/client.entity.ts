@@ -1,7 +1,8 @@
 export class ClientEntity {
   id: string;
   name: string;
-  apiKey: string;
+  apiKey?: string;
+  apiKeyHash?: string;
   active: boolean;
   isAdmin: boolean;
   createdAt: Date;

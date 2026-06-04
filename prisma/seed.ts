@@ -1,10 +1,15 @@
 import { PrismaClient } from '@prisma/client';
+import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
 function generateApiKey(): string {
   return `fsk_${uuidv4().replace(/-/g, '')}`;
+}
+
+function hashApiKey(apiKey: string): string {
+  return createHash('sha256').update(apiKey).digest('hex');
 }
 
 async function main() {
@@ -37,14 +42,14 @@ async function main() {
   const client = await prisma.client.create({
     data: {
       name: 'Default Client',
-      apiKey,
+      apiKeyHash: hashApiKey(apiKey),
       active: true,
       isAdmin: true,
     },
   });
 
   console.log(`✅ Client created: ${client.name} (${client.id})`);
-  console.log(`🔑 API Key: ${client.apiKey}`);
+  console.log(`🔑 API Key: ${apiKey}`);
   console.log('\n⚠️  Save this API Key — it will not be shown again.');
 }
 

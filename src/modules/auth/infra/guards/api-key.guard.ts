@@ -9,6 +9,7 @@ import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { PrismaService } from "../../../../shared/database/prisma.service";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
+import { hashApiKey } from "../../../../shared/utils/generate-api-key.util";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -38,9 +39,23 @@ export class ApiKeyGuard implements CanActivate {
       );
     }
 
-    const client = await this.prisma.client.findUnique({
-      where: { apiKey },
+    const apiKeyHash = hashApiKey(apiKey);
+    let client = await this.prisma.client.findUnique({
+      where: { apiKeyHash },
     });
+
+    if (!client) {
+      client = await this.prisma.client.findUnique({
+        where: { apiKeyHash: apiKey },
+      });
+
+      if (client) {
+        await this.prisma.client.update({
+          where: { id: client.id },
+          data: { apiKeyHash },
+        });
+      }
+    }
 
     if (!client) {
       throw new UnauthorizedException("Invalid API key.");

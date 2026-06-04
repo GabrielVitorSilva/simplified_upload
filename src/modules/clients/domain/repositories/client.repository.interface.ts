@@ -2,11 +2,11 @@ import { ClientEntity } from "../entities/client.entity";
 
 export interface CreateClientData {
   name: string;
-  apiKey: string;
+  apiKeyHash: string;
 }
 
 export interface UpdateClientData {
-  apiKey?: string;
+  apiKeyHash?: string;
 }
 
 export interface ClientRepository {

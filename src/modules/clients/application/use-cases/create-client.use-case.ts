@@ -4,7 +4,10 @@ import {
   ClientRepository,
 } from "../../domain/repositories/client.repository.interface";
 import { ClientEntity } from "../../domain/entities/client.entity";
-import { generateApiKey } from "../../../../shared/utils/generate-api-key.util";
+import {
+  generateApiKey,
+  hashApiKey,
+} from "../../../../shared/utils/generate-api-key.util";
 
 export interface CreateClientInput {
   name: string;
@@ -19,6 +22,10 @@ export class CreateClientUseCase {
 
   async execute(input: CreateClientInput): Promise<ClientEntity> {
     const apiKey = generateApiKey();
-    return this.clientRepository.create({ name: input.name, apiKey });
+    const client = await this.clientRepository.create({
+      name: input.name,
+      apiKeyHash: hashApiKey(apiKey),
+    });
+    return new ClientEntity({ ...client, apiKey });
   }
 }

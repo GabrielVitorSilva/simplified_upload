@@ -70,10 +70,11 @@ export class ClientsController {
     description:
       "Admin endpoint. Lists clients without exposing their API keys. Use the returned id as clientId for GET /clients/{id}, DELETE /clients/{id}, or PATCH /clients/{id}/regenerate-key.",
   })
-  async findAll(): Promise<Omit<ClientEntity, "apiKey">[]> {
+  async findAll(): Promise<Omit<ClientEntity, "apiKey" | "apiKeyHash">[]> {
     const clients = await this.listClientsUseCase.execute();
     return clients.map(
-      ({ apiKey: _apiKey, ...rest }) => new ClientEntity(rest),
+      ({ apiKey: _apiKey, apiKeyHash: _apiKeyHash, ...rest }) =>
+        new ClientEntity(rest),
     );
   }
 
@@ -90,9 +91,9 @@ export class ClientsController {
   })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
-  ): Promise<Omit<ClientEntity, "apiKey">> {
+  ): Promise<Omit<ClientEntity, "apiKey" | "apiKeyHash">> {
     const client = await this.getClientUseCase.execute(id);
-    const { apiKey: _apiKey, ...rest } = client;
+    const { apiKey: _apiKey, apiKeyHash: _apiKeyHash, ...rest } = client;
     return new ClientEntity(rest);
   }
 

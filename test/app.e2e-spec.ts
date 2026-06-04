@@ -16,7 +16,7 @@ const clientId = "550e8400-e29b-41d4-a716-446655440002";
 const adminClient = {
   id: "admin-id",
   name: "Admin",
-  apiKey: "fsk_admin",
+  apiKeyHash: "admin-hash",
   active: true,
   isAdmin: true,
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
@@ -24,7 +24,7 @@ const adminClient = {
 const normalClient = {
   id: "normal-id",
   name: "Normal",
-  apiKey: "fsk_normal",
+  apiKeyHash: "normal-hash",
   active: true,
   isAdmin: false,
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
@@ -159,7 +159,7 @@ describe("App (e2e)", () => {
         ...normalClient,
         id: clientId,
         name: "My App",
-        apiKey: "fsk_created",
+        apiKeyHash: "created-hash",
       });
 
       const response = await request(app.getHttpServer())
@@ -171,10 +171,10 @@ describe("App (e2e)", () => {
       expect(response.body).toMatchObject({
         id: clientId,
         name: "My App",
-        apiKey: "fsk_created",
         active: true,
         isAdmin: false,
       });
+      expect(response.body.apiKey).toMatch(/^fsk_/);
     });
 
     it("GET /api/v1/clients/:id returns a client without apiKey", async () => {
@@ -182,7 +182,7 @@ describe("App (e2e)", () => {
       mockPrisma.client.findUnique.mockResolvedValueOnce({
         ...normalClient,
         id: clientId,
-        apiKey: "fsk_hidden",
+        apiKeyHash: "hidden-hash",
       });
 
       const response = await request(app.getHttpServer())
@@ -203,7 +203,7 @@ describe("App (e2e)", () => {
       mockPrisma.client.update.mockResolvedValueOnce({
         ...normalClient,
         id: clientId,
-        apiKey: "fsk_new",
+        apiKeyHash: "new-hash",
       });
 
       const response = await request(app.getHttpServer())

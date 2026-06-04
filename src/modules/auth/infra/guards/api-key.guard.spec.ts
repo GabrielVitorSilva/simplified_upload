@@ -3,10 +3,12 @@ import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { ApiKeyGuard } from "./api-key.guard";
 import { PrismaService } from "../../../../shared/database/prisma.service";
+import { hashApiKey } from "../../../../shared/utils/generate-api-key.util";
 
 const mockPrismaService = {
   client: {
     findUnique: jest.fn(),
+    update: jest.fn(),
   },
 };
 
@@ -80,7 +82,7 @@ describe("ApiKeyGuard", () => {
     mockReflector.getAllAndOverride.mockReturnValue(false);
     mockPrismaService.client.findUnique.mockResolvedValue({
       id: "client-id",
-      apiKey: "valid-key",
+      apiKeyHash: hashApiKey("valid-key"),
       active: false,
     });
 
@@ -96,7 +98,7 @@ describe("ApiKeyGuard", () => {
     mockPrismaService.client.findUnique.mockResolvedValue({
       id: "client-id",
       name: "Test App",
-      apiKey: "valid-key",
+      apiKeyHash: hashApiKey("valid-key"),
       active: true,
     });
 
@@ -106,7 +108,30 @@ describe("ApiKeyGuard", () => {
 
     expect(result).toBe(true);
     expect(mockPrismaService.client.findUnique).toHaveBeenCalledWith({
-      where: { apiKey: "valid-key" },
+      where: { apiKeyHash: hashApiKey("valid-key") },
+    });
+  });
+
+  it("should upgrade legacy plain API key storage to hash", async () => {
+    mockReflector.getAllAndOverride.mockReturnValue(false);
+    mockPrismaService.client.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: "client-id",
+        name: "Legacy App",
+        apiKeyHash: "valid-key",
+        active: true,
+      });
+    mockPrismaService.client.update.mockResolvedValue(undefined);
+
+    const context = createMockExecutionContext({ "x-api-key": "valid-key" });
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(mockPrismaService.client.update).toHaveBeenCalledWith({
+      where: { id: "client-id" },
+      data: { apiKeyHash: hashApiKey("valid-key") },
     });
   });
 });
