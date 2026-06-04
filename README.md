@@ -1,4 +1,4 @@
-# File Service
+# Simplified Upload
 
 Serviço centralizado de gerenciamento de arquivos construído com **NestJS**, **TypeScript**, **PostgreSQL** (Prisma) e **AWS S3**. Elimina a necessidade de implementar integração com S3 em cada projeto — os sistemas consomem este serviço via API HTTP.
 
