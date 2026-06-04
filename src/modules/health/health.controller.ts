@@ -9,6 +9,7 @@ import {
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { Public } from "../auth/infra/decorators/public.decorator";
+import { SkipRateLimit } from "../../shared/rate-limit/skip-rate-limit.decorator";
 
 @Injectable()
 export class DatabaseHealthIndicator extends HealthIndicator {
@@ -36,6 +37,7 @@ export class HealthController {
 
   @Get()
   @Public()
+  @SkipRateLimit()
   @HealthCheck()
   @ApiOperation({
     summary: "Health check endpoint",
