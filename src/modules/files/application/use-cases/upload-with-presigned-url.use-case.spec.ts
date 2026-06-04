@@ -1,13 +1,15 @@
-import { BadGatewayException } from "@nestjs/common";
+import { BadGatewayException, Logger } from "@nestjs/common";
 import { UploadWithPresignedUrlUseCase } from "./upload-with-presigned-url.use-case";
 import { GenerateUploadUrlUseCase } from "./generate-upload-url.use-case";
 
 describe("UploadWithPresignedUrlUseCase", () => {
   let useCase: UploadWithPresignedUrlUseCase;
   let generateUploadUrlUseCase: jest.Mocked<GenerateUploadUrlUseCase>;
+  let loggerErrorSpy: jest.SpyInstance;
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    loggerErrorSpy = jest.spyOn(Logger.prototype, "error").mockImplementation();
     generateUploadUrlUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GenerateUploadUrlUseCase>;
@@ -17,6 +19,7 @@ describe("UploadWithPresignedUrlUseCase", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+    loggerErrorSpy.mockRestore();
     jest.clearAllMocks();
   });
 

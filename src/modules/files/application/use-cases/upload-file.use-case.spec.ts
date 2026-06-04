@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadGatewayException, NotFoundException } from "@nestjs/common";
+import { BadGatewayException, Logger, NotFoundException } from "@nestjs/common";
 import { UploadFileUseCase } from "./upload-file.use-case";
 import { STORAGE_PROVIDER } from "../../../storage/domain/storage-provider.interface";
 import { FILE_REPOSITORY } from "../../domain/repositories/file.repository.interface";
@@ -21,8 +21,11 @@ const mockPrismaService = {
 
 describe("UploadFileUseCase", () => {
   let useCase: UploadFileUseCase;
+  let loggerErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    loggerErrorSpy = jest.spyOn(Logger.prototype, "error").mockImplementation();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UploadFileUseCase,
@@ -34,6 +37,10 @@ describe("UploadFileUseCase", () => {
 
     useCase = module.get<UploadFileUseCase>(UploadFileUseCase);
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
   });
 
   it("uploads the file to storage and registers it", async () => {
