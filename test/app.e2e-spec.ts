@@ -349,6 +349,7 @@ describe("App (e2e)", () => {
           folder: "avatars",
           fileName: "avatar.png",
           mimeType: "image/png",
+          size: 123,
         })
         .expect(201);
 
@@ -390,6 +391,23 @@ describe("App (e2e)", () => {
         storageId,
       });
       expect(mockS3Client.send).toHaveBeenCalled();
+    });
+
+    it("POST /api/v1/files/upload rejects unsupported multipart MIME type", async () => {
+      authenticateAs(normalClient);
+
+      await request(app.getHttpServer())
+        .post("/api/v1/files/upload")
+        .set("x-api-key", "fsk_normal")
+        .field("storageName", "default")
+        .attach("file", Buffer.from("binary"), {
+          filename: "malware.exe",
+          contentType: "application/x-msdownload",
+        })
+        .expect(415);
+
+      expect(mockS3Client.send).not.toHaveBeenCalled();
+      expect(mockPrisma.file.create).not.toHaveBeenCalled();
     });
 
     it("POST /api/v1/files/upload-url/test uploads through a presigned URL", async () => {

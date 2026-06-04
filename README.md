@@ -234,6 +234,8 @@ A API estará disponível em `http://localhost:3000/api/v1`.
 | `PORT`                    | Porta HTTP                                | `3000`        |
 | `RATE_LIMIT_TTL_SECONDS`  | Janela do rate limit em segundos          | `60`          |
 | `RATE_LIMIT_MAX_REQUESTS` | Máximo de requests por API key/IP na janela. Use `0` para desativar. | `100` |
+| `UPLOAD_MAX_FILE_SIZE_BYTES` | Tamanho máximo aceito para upload em bytes | `10485760` |
+| `UPLOAD_ALLOWED_MIME_TYPES` | MIME types permitidos, separados por vírgula | `image/jpeg,image/png,image/webp,application/pdf` |
 | `DATABASE_URL`            | Connection string PostgreSQL              | —             |
 | `AWS_ACCESS_KEY_ID`       | AWS Access Key ID                         | —             |
 | `AWS_SECRET_ACCESS_KEY`   | AWS Secret Access Key                     | —             |
@@ -241,6 +243,8 @@ A API estará disponível em `http://localhost:3000/api/v1`.
 | `PRESIGNED_URL_EXPIRES_IN`| Expiração da URL de upload (segundos)     | `300`         |
 
 O rate limit é aplicado globalmente e retorna `429` quando excedido. Quando a requisição tem `x-api-key`, o limite é contado por API key; sem API key, é contado por IP. O endpoint `/health` fica fora do rate limit para permitir healthchecks.
+
+Uploads são validados por tamanho e tipo. Por padrão, a API aceita arquivos até 10 MB nos tipos `image/jpeg`, `image/png`, `image/webp` e `application/pdf`.
 
 ---
 
@@ -265,7 +269,8 @@ O rate limit é aplicado globalmente e retorna `429` quando excedido. Quando a r
   "storageName": "default",
   "folder": "avatars",
   "fileName": "photo.jpg",
-  "mimeType": "image/jpeg"
+  "mimeType": "image/jpeg",
+  "size": 12345
 }
 
 // Response 201

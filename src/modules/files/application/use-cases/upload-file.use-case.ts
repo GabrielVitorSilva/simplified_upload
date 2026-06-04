@@ -10,6 +10,7 @@ import {
   STORAGE_PROVIDER,
   StorageProvider,
 } from "../../../storage/domain/storage-provider.interface";
+import { assertAllowedUpload } from "../../../../shared/upload/upload-policy";
 import {
   FILE_REPOSITORY,
   FileRepository,
@@ -38,6 +39,11 @@ export class UploadFileUseCase {
   ) {}
 
   async execute(input: UploadFileInput): Promise<FileEntity> {
+    assertAllowedUpload({
+      mimeType: input.mimeType,
+      size: input.size,
+    });
+
     const storage = await this.prisma.storage.findUnique({
       where: { name: input.storageName },
     });

@@ -32,6 +32,29 @@ import { UploadFileUseCase } from "../../application/use-cases/upload-file.use-c
 import { UploadWithPresignedUrlUseCase } from "../../application/use-cases/upload-with-presigned-url.use-case";
 import { GenerateUploadUrlDto } from "../dtos/generate-upload-url.dto";
 import { ListFilesDto } from "../dtos/list-files.dto";
+import {
+  assertAllowedMimeType,
+  getUploadPolicy,
+} from "../../../../shared/upload/upload-policy";
+
+const uploadPolicy = getUploadPolicy();
+const multipartUploadOptions = {
+  limits: {
+    fileSize: uploadPolicy.maxFileSizeBytes,
+  },
+  fileFilter: (
+    _request: unknown,
+    file: { mimetype: string },
+    callback: (error: Error | null, acceptFile: boolean) => void,
+  ) => {
+    try {
+      assertAllowedMimeType(file.mimetype);
+      callback(null, true);
+    } catch (error) {
+      callback(error as Error, false);
+    }
+  },
+};
 
 interface AuthenticatedRequest {
   client: {
@@ -82,12 +105,12 @@ export class FilesController {
   }
 
   @Post("upload")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", multipartUploadOptions))
   @ApiConsumes("multipart/form-data")
   @ApiOperation({
     summary: "Upload a file through the API",
     description:
-      "Swagger/manual helper. The backend receives the multipart file and uploads it to S3 with the configured AWS credentials. Use storageName from GET /storages. For real client apps, prefer POST /files/upload-url and direct upload to S3.",
+      "Swagger/manual helper. The backend receives the multipart file and uploads it to S3 with the configured AWS credentials. Use storageName from GET /storages. For real client apps, prefer POST /files/upload-url and direct upload to S3. Default limits: 10 MB; image/jpeg, image/png, image/webp, application/pdf.",
   })
   @ApiBody({
     schema: {
@@ -156,12 +179,12 @@ export class FilesController {
   }
 
   @Post("upload-url/test")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", multipartUploadOptions))
   @ApiConsumes("multipart/form-data")
   @ApiOperation({
     summary: "Test upload through a presigned URL",
     description:
-      "Swagger/manual helper to validate the presigned URL flow. It receives a file, generates a presigned URL using storageName from GET /storages, then performs the HTTP PUT to that URL. Use this to test S3 permissions and presigned upload behavior without leaving Swagger.",
+      "Swagger/manual helper to validate the presigned URL flow. It receives a file, generates a presigned URL using storageName from GET /storages, then performs the HTTP PUT to that URL. Use this to test S3 permissions and presigned upload behavior without leaving Swagger. Default limits: 10 MB; image/jpeg, image/png, image/webp, application/pdf.",
   })
   @ApiBody({
     schema: {
@@ -221,6 +244,7 @@ export class FilesController {
       fileName: file.originalname,
       mimeType: file.mimetype,
       buffer: file.buffer,
+      size: file.size,
       clientId: request.client.id,
     });
   }

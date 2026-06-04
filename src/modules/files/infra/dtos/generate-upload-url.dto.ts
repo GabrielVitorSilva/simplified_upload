@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsOptional, IsMimeType } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsMimeType,
+  IsInt,
+  Min,
+} from "class-validator";
 
 export class GenerateUploadUrlDto {
   @ApiProperty({
@@ -37,4 +44,13 @@ export class GenerateUploadUrlDto {
   @IsMimeType()
   @IsNotEmpty()
   mimeType: string;
+
+  @ApiProperty({
+    description:
+      "File size in bytes. The API validates this value before generating the upload URL.",
+    example: 12345,
+  })
+  @IsInt()
+  @Min(1)
+  size: number;
 }

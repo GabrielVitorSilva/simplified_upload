@@ -1,6 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { NotFoundException } from "@nestjs/common";
+import {
+  NotFoundException,
+  PayloadTooLargeException,
+  UnsupportedMediaTypeException,
+} from "@nestjs/common";
 import { GenerateUploadUrlUseCase } from "./generate-upload-url.use-case";
 import { STORAGE_PROVIDER } from "../../../storage/domain/storage-provider.interface";
 import { FILE_REPOSITORY } from "../../domain/repositories/file.repository.interface";
@@ -85,6 +89,7 @@ describe("GenerateUploadUrlUseCase", () => {
       folder: "avatars",
       fileName: "avatar.png",
       mimeType: "image/png",
+      size: 123,
       clientId: "client-id",
     });
 
@@ -125,9 +130,43 @@ describe("GenerateUploadUrlUseCase", () => {
         storageName: "nonexistent",
         fileName: "avatar.png",
         mimeType: "image/png",
+        size: 123,
         clientId: "client-id",
       }),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it("should reject unsupported MIME types before generating an upload URL", async () => {
+    await expect(
+      useCase.execute({
+        storageName: "default",
+        fileName: "avatar.exe",
+        mimeType: "application/x-msdownload",
+        size: 123,
+        clientId: "client-id",
+      }),
+    ).rejects.toThrow(UnsupportedMediaTypeException);
+
+    expect(mockStorageProvider.generateUploadUrl).not.toHaveBeenCalled();
+    expect(mockFileRepository.create).not.toHaveBeenCalled();
+  });
+
+  it("should reject files above the configured size before generating an upload URL", async () => {
+    process.env.UPLOAD_MAX_FILE_SIZE_BYTES = "10";
+
+    await expect(
+      useCase.execute({
+        storageName: "default",
+        fileName: "avatar.png",
+        mimeType: "image/png",
+        size: 11,
+        clientId: "client-id",
+      }),
+    ).rejects.toThrow(PayloadTooLargeException);
+
+    delete process.env.UPLOAD_MAX_FILE_SIZE_BYTES;
+    expect(mockStorageProvider.generateUploadUrl).not.toHaveBeenCalled();
+    expect(mockFileRepository.create).not.toHaveBeenCalled();
   });
 
   it("should build key without folder when folder is not provided", async () => {
@@ -157,6 +196,7 @@ describe("GenerateUploadUrlUseCase", () => {
       storageName: "default",
       fileName: "img.png",
       mimeType: "image/png",
+      size: 123,
       clientId: "client-id",
     });
 

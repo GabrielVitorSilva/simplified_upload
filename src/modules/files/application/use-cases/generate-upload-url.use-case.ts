@@ -10,12 +10,14 @@ import {
   FileRepository,
 } from "../../domain/repositories/file.repository.interface";
 import { PrismaService } from "../../../../shared/database/prisma.service";
+import { assertAllowedUpload } from "../../../../shared/upload/upload-policy";
 
 export interface GenerateUploadUrlInput {
   storageName: string;
   folder?: string;
   fileName: string;
   mimeType: string;
+  size: number;
   clientId: string;
 }
 
@@ -38,7 +40,9 @@ export class GenerateUploadUrlUseCase {
   async execute(
     input: GenerateUploadUrlInput,
   ): Promise<GenerateUploadUrlOutput> {
-    const { storageName, folder, fileName, mimeType } = input;
+    const { storageName, folder, fileName, mimeType, size } = input;
+
+    assertAllowedUpload({ mimeType, size });
 
     const storage = await this.prisma.storage.findUnique({
       where: { name: storageName },
@@ -68,6 +72,7 @@ export class GenerateUploadUrlUseCase {
       key,
       fileName,
       mimeType,
+      size,
       status: "PENDING",
       storageId: storage.id,
       clientId: input.clientId,

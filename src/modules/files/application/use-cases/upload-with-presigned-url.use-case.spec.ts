@@ -49,6 +49,7 @@ describe("UploadWithPresignedUrlUseCase", () => {
       fileName: "avatar.png",
       mimeType: "image/png",
       buffer: Buffer.from("image"),
+      size: 5,
       clientId: "client-id",
     });
 
@@ -70,6 +71,11 @@ describe("UploadWithPresignedUrlUseCase", () => {
       "file-id",
       "UPLOADED",
     );
+    expect(generateUploadUrlUseCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        size: 5,
+      }),
+    );
   });
 
   it("throws BadGatewayException when the presigned upload returns a non-2xx response", async () => {
@@ -87,6 +93,7 @@ describe("UploadWithPresignedUrlUseCase", () => {
         fileName: "avatar.png",
         mimeType: "image/png",
         buffer: Buffer.from("image"),
+        size: 5,
         clientId: "client-id",
       }),
     ).rejects.toThrow(BadGatewayException);

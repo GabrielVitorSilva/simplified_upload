@@ -19,6 +19,7 @@ export interface UploadWithPresignedUrlInput {
   fileName: string;
   mimeType: string;
   buffer: Buffer;
+  size: number;
   clientId: string;
 }
 
@@ -43,6 +44,7 @@ export class UploadWithPresignedUrlUseCase {
       folder: input.folder,
       fileName: input.fileName,
       mimeType: input.mimeType,
+      size: input.size,
       clientId: input.clientId,
     });
 
