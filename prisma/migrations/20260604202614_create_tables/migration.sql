@@ -4,6 +4,7 @@ CREATE TABLE "clients" (
     "name" TEXT NOT NULL,
     "api_key" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
+    "is_admin" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "clients_pkey" PRIMARY KEY ("id")
