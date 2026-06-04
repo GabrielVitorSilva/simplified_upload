@@ -247,6 +247,8 @@ A API estará disponível em `http://localhost:3000/api/v1`.
 | Método   | Endpoint              | Descrição                              |
 |----------|-----------------------|----------------------------------------|
 | `POST`   | `/files/upload-url`   | Gera URL pré-assinada para upload S3   |
+| `POST`   | `/files/upload`       | Faz upload multipart via API (Swagger) |
+| `POST`   | `/files/upload-url/test` | Testa upload multipart via presigned URL (Swagger) |
 | `GET`    | `/files/:id/url`      | Gera URL pré-assinada para download    |
 | `DELETE` | `/files/:id`          | Remove arquivo do S3 e do banco        |
 | `GET`    | `/files`              | Lista arquivos com paginação           |
@@ -270,6 +272,28 @@ A API estará disponível em `http://localhost:3000/api/v1`.
   "expiresIn": 300
 }
 ```
+
+#### POST /files/upload
+
+Endpoint auxiliar para upload manual pelo Swagger UI usando `multipart/form-data`.
+Para aplicações cliente, prefira `POST /files/upload-url` e upload direto para o S3.
+
+Campos:
+
+- `storageName`: nome do storage, ex: `default`
+- `folder`: prefixo opcional, ex: `avatars`
+- `file`: arquivo binário
+
+#### POST /files/upload-url/test
+
+Endpoint auxiliar para testar o fluxo de URL pré-assinada pelo Swagger UI usando `multipart/form-data`.
+Ele gera a presigned URL e executa um `PUT` nessa URL com o arquivo informado.
+
+Campos:
+
+- `storageName`: nome do storage, ex: `default`
+- `folder`: prefixo opcional, ex: `avatars`
+- `file`: arquivo binário
 
 #### GET /files?page=1&limit=10
 

@@ -8,6 +8,7 @@ import {
   GenerateUploadUrlParams,
   GenerateDownloadUrlParams,
   DeleteObjectParams,
+  UploadObjectParams,
   UploadUrlResult,
   DownloadUrlResult,
 } from "../../domain/storage-provider.interface";
@@ -55,6 +56,21 @@ export class S3StorageProvider implements StorageProvider {
     const url = await getSignedUrl(this.s3Client, command, { expiresIn });
 
     return { url };
+  }
+
+  async uploadObject(params: UploadObjectParams): Promise<void> {
+    const { bucket, key, body, mimeType } = params;
+
+    this.logger.debug(`Uploading object: ${key} to bucket: ${bucket}`);
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: mimeType,
+    });
+
+    await this.s3Client.send(command);
   }
 
   async deleteObject(params: DeleteObjectParams): Promise<void> {

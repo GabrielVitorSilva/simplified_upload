@@ -69,6 +69,34 @@ describe("S3StorageProvider", () => {
     });
   });
 
+  describe("uploadObject", () => {
+    it("should call S3 PutObjectCommand with file body", async () => {
+      mockSend.mockResolvedValue({});
+
+      await provider.uploadObject({
+        bucket: "my-bucket",
+        key: "uploads/file.png",
+        body: Buffer.from("file"),
+        mimeType: "image/png",
+      });
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+    });
+
+    it("should propagate S3 upload errors", async () => {
+      mockSend.mockRejectedValue(new Error("S3 upload error"));
+
+      await expect(
+        provider.uploadObject({
+          bucket: "my-bucket",
+          key: "uploads/file.png",
+          body: Buffer.from("file"),
+          mimeType: "image/png",
+        }),
+      ).rejects.toThrow("S3 upload error");
+    });
+  });
+
   describe("deleteObject", () => {
     it("should call S3 DeleteObjectCommand", async () => {
       mockSend.mockResolvedValue({});

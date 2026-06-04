@@ -16,6 +16,13 @@ export interface DeleteObjectParams {
   key: string;
 }
 
+export interface UploadObjectParams {
+  bucket: string;
+  key: string;
+  body: Buffer;
+  mimeType: string;
+}
+
 export interface UploadUrlResult {
   uploadUrl: string;
   key: string;
@@ -31,6 +38,7 @@ export interface StorageProvider {
   generateDownloadUrl(
     params: GenerateDownloadUrlParams,
   ): Promise<DownloadUrlResult>;
+  uploadObject(params: UploadObjectParams): Promise<void>;
   deleteObject(params: DeleteObjectParams): Promise<void>;
 }
 
