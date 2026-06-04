@@ -1,0 +1,270 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-06-03T00:00:00.000Z",
+  "__export_source": "simplified_upload",
+  "resources": [
+    {
+      "_id": "wrk_simplified_upload",
+      "_type": "workspace",
+      "name": "simplified_upload",
+      "description": "File upload service",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_simplified_upload",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:3000/api/v1",
+        "apiKey": "fsk_60ff69602ec94aa1a599262f24320a4d",
+        "storageName": "simplified-storage",
+        "fileId": "",
+        "uploadUrl": ""
+      }
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_simplified_upload",
+      "name": "Health"
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Health Check",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/health",
+      "headers": [],
+      "body": {}
+    },
+    {
+      "_id": "fld_clients",
+      "_type": "request_group",
+      "parentId": "wrk_simplified_upload",
+      "name": "Clients"
+    },
+    {
+      "_id": "req_create_client",
+      "_type": "request",
+      "parentId": "fld_clients",
+      "name": "Criar Client",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/clients",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"meu-app\"\n}"
+      }
+    },
+    {
+      "_id": "req_list_clients",
+      "_type": "request",
+      "parentId": "fld_clients",
+      "name": "Listar Clients",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/clients",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "req_regenerate_key",
+      "_type": "request",
+      "parentId": "fld_clients",
+      "name": "Regenerar API Key",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/clients/CLIENT_ID_AQUI/regenerate-key",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "req_delete_client",
+      "_type": "request",
+      "parentId": "fld_clients",
+      "name": "Deletar Client",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/clients/CLIENT_ID_AQUI",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "fld_storages",
+      "_type": "request_group",
+      "parentId": "wrk_simplified_upload",
+      "name": "Storages"
+    },
+    {
+      "_id": "req_create_storage",
+      "_type": "request",
+      "parentId": "fld_storages",
+      "name": "Criar Storage",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/storages",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"simplified-storage\",\n  \"bucket\": \"simplifiedupload\",\n  \"region\": \"us-east-1\"\n}"
+      }
+    },
+    {
+      "_id": "req_list_storages",
+      "_type": "request",
+      "parentId": "fld_storages",
+      "name": "Listar Storages",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/storages",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "req_get_storage",
+      "_type": "request",
+      "parentId": "fld_storages",
+      "name": "Buscar Storage por ID",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/storages/STORAGE_ID_AQUI",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "req_update_storage",
+      "_type": "request",
+      "parentId": "fld_storages",
+      "name": "Atualizar Storage",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/storages/STORAGE_ID_AQUI",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"bucket\": \"novo-bucket\",\n  \"region\": \"us-east-1\"\n}"
+      }
+    },
+    {
+      "_id": "req_delete_storage",
+      "_type": "request",
+      "parentId": "fld_storages",
+      "name": "Deletar Storage",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/storages/STORAGE_ID_AQUI",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "fld_upload_flow",
+      "_type": "request_group",
+      "parentId": "wrk_simplified_upload",
+      "name": "🚀 Fluxo de Upload"
+    },
+    {
+      "_id": "req_generate_upload_url",
+      "_type": "request",
+      "parentId": "fld_upload_flow",
+      "name": "[1/3] Gerar Upload URL",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/files/upload-url",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"storageName\": \"{{ _.storageName }}\",\n  \"folder\": \"testes\",\n  \"fileName\": \"foto.png\",\n  \"mimeType\": \"image/png\"\n}"
+      },
+      "description": "Retorna uploadUrl e fileId. Copie os dois para usar nos próximos passos."
+    },
+    {
+      "_id": "req_put_s3",
+      "_type": "request",
+      "parentId": "fld_upload_flow",
+      "name": "[2/3] Upload para o S3 (PUT)",
+      "method": "PUT",
+      "url": "COLE_A_UPLOAD_URL_AQUI",
+      "headers": [
+        { "name": "Content-Type", "value": "image/png" }
+      ],
+      "body": {
+        "mimeType": "application/octet-stream",
+        "fileName": "foto.png"
+      },
+      "description": "1. Cole a uploadUrl do passo anterior na URL acima.\n2. Em Body, selecione 'Binary File' e escolha o arquivo foto.png.\n3. Envie — resposta deve ser 200 vazio."
+    },
+    {
+      "_id": "req_get_download_url",
+      "_type": "request",
+      "parentId": "fld_upload_flow",
+      "name": "[3/3] Obter URL de Download",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/files/COLE_FILE_ID_AQUI/url",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {},
+      "description": "Substitua COLE_FILE_ID_AQUI pelo fileId retornado no passo 1. A URL retornada abre o arquivo no browser."
+    },
+    {
+      "_id": "fld_files",
+      "_type": "request_group",
+      "parentId": "wrk_simplified_upload",
+      "name": "Files"
+    },
+    {
+      "_id": "req_list_files",
+      "_type": "request",
+      "parentId": "fld_files",
+      "name": "Listar Arquivos",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/files?page=1&limit=10",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "req_list_files_by_storage",
+      "_type": "request",
+      "parentId": "fld_files",
+      "name": "Listar Arquivos por Storage",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/files?storageId=STORAGE_ID_AQUI&page=1&limit=10",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    },
+    {
+      "_id": "req_delete_file",
+      "_type": "request",
+      "parentId": "fld_files",
+      "name": "Deletar Arquivo",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/files/FILE_ID_AQUI",
+      "headers": [
+        { "name": "x-api-key", "value": "{{ _.apiKey }}" }
+      ],
+      "body": {}
+    }
+  ]
+}

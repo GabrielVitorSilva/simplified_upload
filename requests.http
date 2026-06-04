@@ -1,8 +1,7 @@
 ### File Service - HTTP Request Examples
 ### Use with REST Client extension (VSCode) or similar
-
 @baseUrl = http://localhost:3000/api/v1
-@apiKey = fsk_your_api_key_here
+@apiKey = fsk_60ff69602ec94aa1a599262f24320a4d
 
 ###
 # ──────────────────────────────────────
@@ -91,27 +90,29 @@ Content-Type: application/json
 x-api-key: {{apiKey}}
 
 {
-  "storageName": "default",
-  "folder": "avatars",
-  "fileName": "profile-photo.jpg",
-  "mimeType": "image/jpeg"
+  "storageName": "simplified-storage",
+  "folder": "testes",
+  "fileName": "foto.png",
+  "mimeType": "image/png"
 }
 
 # Response example:
 # {
 #   "fileId": "550e8400-e29b-41d4-a716-446655440000",
-#   "key": "avatars/550e8400-e29b-41d4-a716-446655440000.jpg",
-#   "uploadUrl": "https://my-bucket.s3.amazonaws.com/avatars/...?X-Amz-Signature=...",
+#   "key": "testes/550e8400-e29b-41d4-a716-446655440000.png",
+#   "uploadUrl": "https://simplifiedupload.s3.amazonaws.com/testes/...?X-Amz-Signature=...",
 #   "expiresIn": 300
 # }
 
-### Step 2: Upload directly to S3 using the presigned URL (client-side)
-# PUT <uploadUrl from previous response>
-# Content-Type: image/jpeg
-# (binary file body)
+### Step 2: Upload directly to S3 using the presigned URL
+# Substitua UPLOAD_URL_HERE pela uploadUrl retornada no Step 1
+PUT UPLOAD_URL_HERE
+Content-Type: image/png
+
+< ./foto.png
 
 ### Get Presigned Download URL for a file
-GET {{baseUrl}}/files/FILE_UUID_HERE/url
+GET {{baseUrl}}/files/05543a17-c602-4338-a35f-ba6693482837/url
 x-api-key: {{apiKey}}
 
 ### List Files (with pagination)
