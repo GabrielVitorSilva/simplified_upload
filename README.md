@@ -232,6 +232,7 @@ A API estará disponível em `http://localhost:3000/api/v1`.
 |---------------------------|-------------------------------------------|---------------|
 | `NODE_ENV`                | Ambiente da aplicação                     | `development` |
 | `PORT`                    | Porta HTTP                                | `3000`        |
+| `SWAGGER_ENABLED`         | Habilita Swagger em `/docs`. Em produção, deixe ausente ou `false` | `true` em dev/test |
 | `RATE_LIMIT_TTL_SECONDS`  | Janela do rate limit em segundos          | `60`          |
 | `RATE_LIMIT_MAX_REQUESTS` | Máximo de requests por API key/IP na janela. Use `0` para desativar. | `100` |
 | `UPLOAD_MAX_FILE_SIZE_BYTES` | Tamanho máximo aceito para upload em bytes | `10485760` |
@@ -380,13 +381,14 @@ async publicRoute() { ... }
 
 ## Swagger
 
-Com a aplicação rodando, acesse:
+Em desenvolvimento, com a aplicação rodando, acesse:
 
 ```
 http://localhost:3000/docs
 ```
 
 Clique em **Authorize** e insira sua API Key para testar os endpoints diretamente pela UI.
+Em produção, o Swagger fica desabilitado por padrão quando `NODE_ENV=production`. Use `SWAGGER_ENABLED=true` apenas se a documentação precisar ser exposta em um ambiente controlado.
 
 ---
 

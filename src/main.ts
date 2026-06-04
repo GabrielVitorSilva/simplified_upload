@@ -4,6 +4,14 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./shared/exceptions/http-exception.filter";
 
+function isSwaggerEnabled(): boolean {
+  if (process.env.SWAGGER_ENABLED !== undefined) {
+    return process.env.SWAGGER_ENABLED === "true";
+  }
+
+  return process.env.NODE_ENV !== "production";
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -25,32 +33,38 @@ async function bootstrap() {
   // CORS
   app.enableCors();
 
-  // Swagger
-  const config = new DocumentBuilder()
-    .setTitle("File Service API")
-    .setDescription(
-      "Centralized file management service. Start by running the seed and copying the generated API key. Click Authorize and paste that key as x-api-key. Admin keys can create clients and storages. File endpoints use storageName from GET /storages and fileId from upload/list responses. The API has global rate limit protection and returns 429 when the configured limit is exceeded.",
-    )
-    .setVersion("1.0")
-    .addApiKey({ type: "apiKey", name: "x-api-key", in: "header" }, "x-api-key")
-    .addTag("Files", "File management operations")
-    .addTag("Storages", "Storage configuration management")
-    .addTag("Clients", "API client management")
-    .addTag("Health", "Service health checks")
-    .build();
+  if (isSwaggerEnabled()) {
+    const config = new DocumentBuilder()
+      .setTitle("File Service API")
+      .setDescription(
+        "Centralized file management service. Start by running the seed and copying the generated API key. Click Authorize and paste that key as x-api-key. Admin keys can create clients and storages. File endpoints use storageName from GET /storages and fileId from upload/list responses. The API has global rate limit protection and returns 429 when the configured limit is exceeded.",
+      )
+      .setVersion("1.0")
+      .addApiKey(
+        { type: "apiKey", name: "x-api-key", in: "header" },
+        "x-api-key",
+      )
+      .addTag("Files", "File management operations")
+      .addTag("Storages", "Storage configuration management")
+      .addTag("Clients", "API client management")
+      .addTag("Health", "Service health checks")
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("docs", app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup("docs", app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
   console.log(`🚀 Application running on: http://localhost:${port}/api/v1`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/docs`);
+  if (isSwaggerEnabled()) {
+    console.log(`📚 Swagger docs: http://localhost:${port}/docs`);
+  }
 }
 
 bootstrap();
