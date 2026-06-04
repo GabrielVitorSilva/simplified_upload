@@ -4,11 +4,11 @@ import {
   Injectable,
   UnauthorizedException,
   Logger,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
-import { PrismaService } from '../../../../shared/database/prisma.service';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Request } from "express";
+import { PrismaService } from "../../../../shared/database/prisma.service";
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -30,10 +30,12 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const apiKey = request.headers['x-api-key'] as string;
+    const apiKey = request.headers["x-api-key"] as string;
 
     if (!apiKey) {
-      throw new UnauthorizedException('Missing API key. Provide x-api-key header.');
+      throw new UnauthorizedException(
+        "Missing API key. Provide x-api-key header.",
+      );
     }
 
     const client = await this.prisma.client.findUnique({
@@ -41,11 +43,11 @@ export class ApiKeyGuard implements CanActivate {
     });
 
     if (!client) {
-      throw new UnauthorizedException('Invalid API key.');
+      throw new UnauthorizedException("Invalid API key.");
     }
 
     if (!client.active) {
-      throw new UnauthorizedException('API key is inactive.');
+      throw new UnauthorizedException("API key is inactive.");
     }
 
     // Attach client to request for downstream use

@@ -3,10 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
+function generateApiKey(): string {
+  return `fsk_${uuidv4().replace(/-/g, '')}`;
+}
+
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Create default storage
+  // Create default storage (idempotent)
   const storage = await prisma.storage.upsert({
     where: { name: 'default' },
     update: {},
@@ -17,21 +21,29 @@ async function main() {
     },
   });
 
-  console.log(`✅ Storage created: ${storage.name} (${storage.id})`);
+  console.log(`✅ Storage: ${storage.name} (${storage.id})`);
 
-  // Create default client
-  const apiKey = uuidv4();
-  const client = await prisma.client.upsert({
-    where: { apiKey },
-    update: {},
-    create: {
+  // Create default admin client (idempotent — lookup by fixed name)
+  const existingAdmin = await prisma.client.findFirst({
+    where: { name: 'Default Client', isAdmin: true },
+  });
+
+  if (existingAdmin) {
+    console.log(`ℹ️  Admin client already exists: "${existingAdmin.name}" (${existingAdmin.id}). API Key not shown for security.`);
+    return;
+  }
+
+  const apiKey = generateApiKey();
+  const client = await prisma.client.create({
+    data: {
       name: 'Default Client',
       apiKey,
       active: true,
+      isAdmin: true,
     },
   });
 
-  console.log(`✅ Client created: ${client.name}`);
+  console.log(`✅ Client created: ${client.name} (${client.id})`);
   console.log(`🔑 API Key: ${client.apiKey}`);
   console.log('\n⚠️  Save this API Key — it will not be shown again.');
 }

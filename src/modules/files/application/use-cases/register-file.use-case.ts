@@ -1,7 +1,10 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { FILE_REPOSITORY, FileRepository } from '../../domain/repositories/file.repository.interface';
-import { FileEntity } from '../../domain/entities/file.entity';
-import { PrismaService } from '../../../../shared/database/prisma.service';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  FILE_REPOSITORY,
+  FileRepository,
+} from "../../domain/repositories/file.repository.interface";
+import { FileEntity } from "../../domain/entities/file.entity";
+import { PrismaService } from "../../../../shared/database/prisma.service";
 
 export interface RegisterFileInput {
   key: string;
@@ -24,7 +27,9 @@ export class RegisterFileUseCase {
     });
 
     if (!storage) {
-      throw new NotFoundException(`Storage with ID "${input.storageId}" not found.`);
+      throw new NotFoundException(
+        `Storage with ID "${input.storageId}" not found.`,
+      );
     }
 
     return this.fileRepository.create(input);

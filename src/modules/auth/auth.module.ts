@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
-import { ApiKeyGuard } from './infra/guards/api-key.guard';
+import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { ApiKeyGuard } from "./infra/guards/api-key.guard";
 
 @Module({
   providers: [

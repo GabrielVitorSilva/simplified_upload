@@ -1,4 +1,4 @@
-import { FileEntity } from '../entities/file.entity';
+import { FileEntity } from "../entities/file.entity";
 
 export interface FindAllFilesOptions {
   page: number;
@@ -30,4 +30,4 @@ export interface FileRepository {
   delete(id: string): Promise<void>;
 }
 
-export const FILE_REPOSITORY = 'FILE_REPOSITORY';
+export const FILE_REPOSITORY = "FILE_REPOSITORY";

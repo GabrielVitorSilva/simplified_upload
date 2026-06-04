@@ -1,7 +1,13 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { STORAGE_PROVIDER, StorageProvider } from '../../../storage/domain/storage-provider.interface';
-import { FILE_REPOSITORY, FileRepository } from '../../domain/repositories/file.repository.interface';
-import { PrismaService } from '../../../../shared/database/prisma.service';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  STORAGE_PROVIDER,
+  StorageProvider,
+} from "../../../storage/domain/storage-provider.interface";
+import {
+  FILE_REPOSITORY,
+  FileRepository,
+} from "../../domain/repositories/file.repository.interface";
+import { PrismaService } from "../../../../shared/database/prisma.service";
 
 export interface GetFileUrlOutput {
   url: string;

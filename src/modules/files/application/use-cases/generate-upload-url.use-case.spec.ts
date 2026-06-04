@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
-import { NotFoundException } from '@nestjs/common';
-import { GenerateUploadUrlUseCase } from './generate-upload-url.use-case';
-import { STORAGE_PROVIDER } from '../../../storage/domain/storage-provider.interface';
-import { FILE_REPOSITORY } from '../../domain/repositories/file.repository.interface';
-import { PrismaService } from '../../../../shared/database/prisma.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
+import { NotFoundException } from "@nestjs/common";
+import { GenerateUploadUrlUseCase } from "./generate-upload-url.use-case";
+import { STORAGE_PROVIDER } from "../../../storage/domain/storage-provider.interface";
+import { FILE_REPOSITORY } from "../../domain/repositories/file.repository.interface";
+import { PrismaService } from "../../../../shared/database/prisma.service";
 
 const mockStorageProvider = {
   generateUploadUrl: jest.fn(),
@@ -30,7 +30,7 @@ const mockConfigService = {
   get: jest.fn().mockReturnValue(300),
 };
 
-describe('GenerateUploadUrlUseCase', () => {
+describe("GenerateUploadUrlUseCase", () => {
   let useCase: GenerateUploadUrlUseCase;
 
   beforeEach(async () => {
@@ -48,99 +48,108 @@ describe('GenerateUploadUrlUseCase', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(useCase).toBeDefined();
   });
 
-  it('should generate an upload URL successfully', async () => {
+  it("should generate an upload URL successfully", async () => {
     const mockStorage = {
-      id: 'storage-id',
-      name: 'default',
-      bucket: 'my-bucket',
-      region: 'us-east-1',
+      id: "storage-id",
+      name: "default",
+      bucket: "my-bucket",
+      region: "us-east-1",
     };
 
     const mockFile = {
-      id: 'file-id',
-      key: 'avatars/uuid-avatar.png',
-      fileName: 'avatar.png',
-      mimeType: 'image/png',
-      storageId: 'storage-id',
+      id: "file-id",
+      key: "avatars/uuid-avatar.png",
+      fileName: "avatar.png",
+      mimeType: "image/png",
+      storageId: "storage-id",
     };
 
     mockPrismaService.storage.findUnique.mockResolvedValue(mockStorage);
     mockStorageProvider.generateUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.aws.com/presigned-url',
-      key: 'avatars/uuid-avatar.png',
+      uploadUrl: "https://s3.aws.com/presigned-url",
+      key: "avatars/uuid-avatar.png",
       expiresIn: 300,
     });
     mockFileRepository.create.mockResolvedValue(mockFile);
 
     const result = await useCase.execute({
-      storageName: 'default',
-      folder: 'avatars',
-      fileName: 'avatar.png',
-      mimeType: 'image/png',
+      storageName: "default",
+      folder: "avatars",
+      fileName: "avatar.png",
+      mimeType: "image/png",
     });
 
     expect(result).toMatchObject({
-      fileId: 'file-id',
-      uploadUrl: 'https://s3.aws.com/presigned-url',
+      fileId: "file-id",
+      uploadUrl: "https://s3.aws.com/presigned-url",
       expiresIn: 300,
     });
 
     expect(mockPrismaService.storage.findUnique).toHaveBeenCalledWith({
-      where: { name: 'default' },
+      where: { name: "default" },
     });
 
     expect(mockStorageProvider.generateUploadUrl).toHaveBeenCalledWith(
       expect.objectContaining({
-        bucket: 'my-bucket',
-        mimeType: 'image/png',
+        bucket: "my-bucket",
+        mimeType: "image/png",
         expiresIn: 300,
       }),
     );
 
     expect(mockFileRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        fileName: 'avatar.png',
-        mimeType: 'image/png',
-        storageId: 'storage-id',
+        fileName: "avatar.png",
+        mimeType: "image/png",
+        storageId: "storage-id",
       }),
     );
   });
 
-  it('should throw NotFoundException when storage does not exist', async () => {
+  it("should throw NotFoundException when storage does not exist", async () => {
     mockPrismaService.storage.findUnique.mockResolvedValue(null);
 
     await expect(
       useCase.execute({
-        storageName: 'nonexistent',
-        fileName: 'avatar.png',
-        mimeType: 'image/png',
+        storageName: "nonexistent",
+        fileName: "avatar.png",
+        mimeType: "image/png",
       }),
     ).rejects.toThrow(NotFoundException);
   });
 
-  it('should build key without folder when folder is not provided', async () => {
-    const mockStorage = { id: 'storage-id', bucket: 'bucket', region: 'us-east-1' };
-    const mockFile = { id: 'file-id', key: 'uuid.png', fileName: 'img.png', storageId: 'storage-id' };
+  it("should build key without folder when folder is not provided", async () => {
+    const mockStorage = {
+      id: "storage-id",
+      bucket: "bucket",
+      region: "us-east-1",
+    };
+    const mockFile = {
+      id: "file-id",
+      key: "uuid.png",
+      fileName: "img.png",
+      storageId: "storage-id",
+    };
 
     mockPrismaService.storage.findUnique.mockResolvedValue(mockStorage);
     mockStorageProvider.generateUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.url',
-      key: 'uuid.png',
+      uploadUrl: "https://s3.url",
+      key: "uuid.png",
       expiresIn: 300,
     });
     mockFileRepository.create.mockResolvedValue(mockFile);
 
     const result = await useCase.execute({
-      storageName: 'default',
-      fileName: 'img.png',
-      mimeType: 'image/png',
+      storageName: "default",
+      fileName: "img.png",
+      mimeType: "image/png",
     });
 
     // Key should NOT contain a folder prefix
-    expect(result.key).not.toContain('/');
+    expect(result.key).not.toContain("/");
   });
 });

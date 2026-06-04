@@ -15,6 +15,7 @@ model Client {
   name      String
   apiKey    String   @unique @map("api_key")
   active    Boolean  @default(true)
+  isAdmin   Boolean  @default(false) @map("is_admin")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("clients")

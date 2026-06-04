@@ -1,5 +1,5 @@
-import { Global, Module } from '@nestjs/common';
-import { S3ClientProvider } from './s3-client.provider';
+import { Global, Module } from "@nestjs/common";
+import { S3ClientProvider } from "./s3-client.provider";
 
 @Global()
 @Module({

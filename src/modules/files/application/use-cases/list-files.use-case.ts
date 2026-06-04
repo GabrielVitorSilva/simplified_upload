@@ -1,9 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   FILE_REPOSITORY,
   FileRepository,
   PaginatedFiles,
-} from '../../domain/repositories/file.repository.interface';
+} from "../../domain/repositories/file.repository.interface";
 
 export interface ListFilesInput {
   page?: number;
@@ -13,7 +13,9 @@ export interface ListFilesInput {
 
 @Injectable()
 export class ListFilesUseCase {
-  constructor(@Inject(FILE_REPOSITORY) private readonly fileRepository: FileRepository) {}
+  constructor(
+    @Inject(FILE_REPOSITORY) private readonly fileRepository: FileRepository,
+  ) {}
 
   async execute(input: ListFilesInput): Promise<PaginatedFiles> {
     const { page = 1, limit = 10, storageId } = input;

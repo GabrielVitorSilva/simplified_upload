@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../shared/database/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../../shared/database/prisma.service";
 import {
   FileRepository,
   CreateFileData,
   FindAllFilesOptions,
   PaginatedFiles,
-} from '../../domain/repositories/file.repository.interface';
-import { FileEntity } from '../../domain/entities/file.entity';
+} from "../../domain/repositories/file.repository.interface";
+import { FileEntity } from "../../domain/entities/file.entity";
 
 @Injectable()
 export class PrismaFileRepository implements FileRepository {
@@ -37,7 +37,7 @@ export class PrismaFileRepository implements FileRepository {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       }),
       this.prisma.file.count({ where }),
     ]);

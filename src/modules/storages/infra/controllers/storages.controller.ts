@@ -5,75 +5,82 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
-  ConflictException,
-} from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { PrismaService } from '../../../../shared/database/prisma.service';
-import { CreateStorageDto } from '../dtos/create-storage.dto';
-import { UpdateStorageDto } from '../dtos/update-storage.dto';
-import { StorageEntity } from '../../domain/entities/storage.entity';
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+} from "@nestjs/swagger";
+import { AdminGuard } from "../../../auth/infra/guards/admin.guard";
+import { CreateStorageDto } from "../dtos/create-storage.dto";
+import { UpdateStorageDto } from "../dtos/update-storage.dto";
+import { StorageEntity } from "../../domain/entities/storage.entity";
+import { CreateStorageUseCase } from "../../application/use-cases/create-storage.use-case";
+import { ListStoragesUseCase } from "../../application/use-cases/list-storages.use-case";
+import { GetStorageUseCase } from "../../application/use-cases/get-storage.use-case";
+import { UpdateStorageUseCase } from "../../application/use-cases/update-storage.use-case";
+import { DeleteStorageUseCase } from "../../application/use-cases/delete-storage.use-case";
 
-@ApiTags('Storages')
-@ApiSecurity('x-api-key')
-@Controller('storages')
+@ApiTags("Storages")
+@ApiSecurity("x-api-key")
+@UseGuards(AdminGuard)
+@Controller("storages")
 export class StoragesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly createStorageUseCase: CreateStorageUseCase,
+    private readonly listStoragesUseCase: ListStoragesUseCase,
+    private readonly getStorageUseCase: GetStorageUseCase,
+    private readonly updateStorageUseCase: UpdateStorageUseCase,
+    private readonly deleteStorageUseCase: DeleteStorageUseCase,
+  ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new storage configuration' })
-  @ApiResponse({ status: 201, description: 'Storage created' })
-  @ApiResponse({ status: 409, description: 'Storage name already exists' })
+  @ApiOperation({ summary: "Create a new storage configuration" })
+  @ApiResponse({ status: 201, description: "Storage created" })
+  @ApiResponse({ status: 409, description: "Storage name already exists" })
   async create(@Body() dto: CreateStorageDto): Promise<StorageEntity> {
-    const existing = await this.prisma.storage.findUnique({ where: { name: dto.name } });
-    if (existing) {
-      throw new ConflictException(`Storage with name "${dto.name}" already exists.`);
-    }
-    const storage = await this.prisma.storage.create({ data: dto });
-    return new StorageEntity(storage);
+    return this.createStorageUseCase.execute(dto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all storage configurations' })
+  @ApiOperation({ summary: "List all storage configurations" })
   async findAll(): Promise<StorageEntity[]> {
-    const storages = await this.prisma.storage.findMany({ orderBy: { createdAt: 'desc' } });
-    return storages.map((s) => new StorageEntity(s));
+    return this.listStoragesUseCase.execute();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a storage by ID' })
-  @ApiParam({ name: 'id', description: 'Storage UUID' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<StorageEntity> {
-    const storage = await this.prisma.storage.findUnique({ where: { id } });
-    if (!storage) throw new NotFoundException(`Storage "${id}" not found.`);
-    return new StorageEntity(storage);
+  @Get(":id")
+  @ApiOperation({ summary: "Get a storage by ID" })
+  @ApiParam({ name: "id", description: "Storage UUID" })
+  async findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+  ): Promise<StorageEntity> {
+    return this.getStorageUseCase.execute(id);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a storage configuration' })
-  @ApiParam({ name: 'id', description: 'Storage UUID' })
+  @Put(":id")
+  @ApiOperation({ summary: "Update a storage configuration" })
+  @ApiParam({ name: "id", description: "Storage UUID" })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateStorageDto,
   ): Promise<StorageEntity> {
-    const existing = await this.prisma.storage.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Storage "${id}" not found.`);
-    const storage = await this.prisma.storage.update({ where: { id }, data: dto });
-    return new StorageEntity(storage);
+    return this.updateStorageUseCase.execute(id, dto);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a storage configuration' })
-  @ApiParam({ name: 'id', description: 'Storage UUID' })
-  @ApiResponse({ status: 204, description: 'Storage deleted' })
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    const existing = await this.prisma.storage.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Storage "${id}" not found.`);
-    await this.prisma.storage.delete({ where: { id } });
+  @ApiOperation({ summary: "Delete a storage configuration" })
+  @ApiParam({ name: "id", description: "Storage UUID" })
+  @ApiResponse({ status: 204, description: "Storage deleted" })
+  @ApiResponse({ status: 409, description: "Storage has associated files" })
+  async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
+    return this.deleteStorageUseCase.execute(id);
   }
 }

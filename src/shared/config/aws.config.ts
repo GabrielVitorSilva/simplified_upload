@@ -1,8 +1,9 @@
-import { registerAs } from '@nestjs/config';
+import { registerAs } from "@nestjs/config";
 
-export const awsConfig = registerAs('aws', () => ({
+export const awsConfig = registerAs("aws", () => ({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'us-east-1',
-  presignedUrlExpiresIn: parseInt(process.env.PRESIGNED_URL_EXPIRES_IN, 10) || 300,
+  region: process.env.AWS_REGION || "us-east-1",
+  presignedUrlExpiresIn:
+    parseInt(process.env.PRESIGNED_URL_EXPIRES_IN, 10) || 300,
 }));

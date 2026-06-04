@@ -3,6 +3,7 @@ export class ClientEntity {
   name: string;
   apiKey: string;
   active: boolean;
+  isAdmin: boolean;
   createdAt: Date;
 
   constructor(partial: Partial<ClientEntity>) {

@@ -1,8 +1,8 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { S3_CLIENT } from '../../../../shared/aws/s3-client.provider';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3_CLIENT } from "../../../../shared/aws/s3-client.provider";
 import {
   StorageProvider,
   GenerateUploadUrlParams,
@@ -10,7 +10,7 @@ import {
   DeleteObjectParams,
   UploadUrlResult,
   DownloadUrlResult,
-} from '../../domain/storage-provider.interface';
+} from "../../domain/storage-provider.interface";
 
 @Injectable()
 export class S3StorageProvider implements StorageProvider {
@@ -18,10 +18,14 @@ export class S3StorageProvider implements StorageProvider {
 
   constructor(@Inject(S3_CLIENT) private readonly s3Client: S3Client) {}
 
-  async generateUploadUrl(params: GenerateUploadUrlParams): Promise<UploadUrlResult> {
+  async generateUploadUrl(
+    params: GenerateUploadUrlParams,
+  ): Promise<UploadUrlResult> {
     const { bucket, key, mimeType, expiresIn } = params;
 
-    this.logger.debug(`Generating upload URL for key: ${key} in bucket: ${bucket}`);
+    this.logger.debug(
+      `Generating upload URL for key: ${key} in bucket: ${bucket}`,
+    );
 
     const command = new PutObjectCommand({
       Bucket: bucket,
@@ -34,10 +38,14 @@ export class S3StorageProvider implements StorageProvider {
     return { uploadUrl, key, expiresIn };
   }
 
-  async generateDownloadUrl(params: GenerateDownloadUrlParams): Promise<DownloadUrlResult> {
+  async generateDownloadUrl(
+    params: GenerateDownloadUrlParams,
+  ): Promise<DownloadUrlResult> {
     const { bucket, key, expiresIn = 3600 } = params;
 
-    this.logger.debug(`Generating download URL for key: ${key} in bucket: ${bucket}`);
+    this.logger.debug(
+      `Generating download URL for key: ${key} in bucket: ${bucket}`,
+    );
 
     const command = new GetObjectCommand({
       Bucket: bucket,

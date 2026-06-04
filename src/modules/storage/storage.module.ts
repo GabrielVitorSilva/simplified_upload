@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { S3StorageProvider } from './infra/providers/s3-storage.provider';
-import { STORAGE_PROVIDER } from './domain/storage-provider.interface';
+import { Module } from "@nestjs/common";
+import { S3StorageProvider } from "./infra/providers/s3-storage.provider";
+import { STORAGE_PROVIDER } from "./domain/storage-provider.interface";
 
 @Module({
   providers: [

@@ -28,8 +28,10 @@ export interface DownloadUrlResult {
 
 export interface StorageProvider {
   generateUploadUrl(params: GenerateUploadUrlParams): Promise<UploadUrlResult>;
-  generateDownloadUrl(params: GenerateDownloadUrlParams): Promise<DownloadUrlResult>;
+  generateDownloadUrl(
+    params: GenerateDownloadUrlParams,
+  ): Promise<DownloadUrlResult>;
   deleteObject(params: DeleteObjectParams): Promise<void>;
 }
 
-export const STORAGE_PROVIDER = 'STORAGE_PROVIDER';
+export const STORAGE_PROVIDER = "STORAGE_PROVIDER";

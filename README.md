@@ -23,17 +23,17 @@ Serviço centralizado de gerenciamento de arquivos construído com **NestJS**, *
 
 ## Arquitetura
 
-O projeto adota **DDD leve** com camadas bem definidas, **SOLID** e boas práticas do NestJS.
+O projeto adota **DDD leve** com camadas bem definidas, **SOLID** e boas práticas do NestJS. Todos os módulos (`files`, `clients`, `storages`) seguem o mesmo padrão de camadas: domain → application (use-cases) → infra (controller + repository).
 
 ```
 src/
 ├── modules/
-│   ├── auth/               # API Key Guard + decorator @Public
+│   ├── auth/               # API Key Guard (global) + AdminGuard + decorator @Public
 │   ├── files/              # Gerenciamento de arquivos (use-cases, repositório, controller)
 │   ├── storage/            # Abstração de provedor de armazenamento (interface + S3)
-│   ├── storages/           # CRUD de configurações de storage (bucket/region)
-│   ├── clients/            # CRUD de clientes API
-│   └── health/             # Healthcheck endpoint
+│   ├── storages/           # CRUD de configurações de storage — requer API key admin
+│   ├── clients/            # CRUD de clientes API — requer API key admin
+│   └── health/             # Healthcheck endpoint (público)
 └── shared/
     ├── config/             # Configurações tipadas (app, aws)
     ├── database/           # PrismaService + PrismaModule global
@@ -48,6 +48,7 @@ src/
 - **Use-cases** concentram toda a lógica de negócio, são independentes do framework e facilmente testáveis.
 - **Repositórios** isolam o Prisma da camada de domínio.
 - **APP_GUARD global** garante que todos os endpoints exijam `x-api-key` por padrão; use `@Public()` para rotas abertas (ex: health).
+- **AdminGuard** protege rotas administrativas (`/clients`, `/storages`). Apenas clientes com `isAdmin: true` têm acesso. Rotas de `/files` permanecem acessíveis a qualquer cliente autenticado.
 
 ---
 
@@ -88,6 +89,7 @@ file-service/
 │   │   │   ├── auth.module.ts
 │   │   │   └── infra/
 │   │   │       ├── guards/api-key.guard.ts
+│   │   │       ├── guards/admin.guard.ts
 │   │   │       └── decorators/public.decorator.ts
 │   │   ├── files/
 │   │   │   ├── files.module.ts
@@ -109,7 +111,35 @@ file-service/
 │   │   │   ├── domain/storage-provider.interface.ts
 │   │   │   └── infra/providers/s3-storage.provider.ts
 │   │   ├── storages/
+│   │   │   ├── storages.module.ts
+│   │   │   ├── application/use-cases/
+│   │   │   │   ├── create-storage.use-case.ts
+│   │   │   │   ├── list-storages.use-case.ts
+│   │   │   │   ├── get-storage.use-case.ts
+│   │   │   │   ├── update-storage.use-case.ts
+│   │   │   │   └── delete-storage.use-case.ts
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/storage.entity.ts
+│   │   │   │   └── repositories/storage.repository.interface.ts
+│   │   │   └── infra/
+│   │   │       ├── controllers/storages.controller.ts
+│   │   │       ├── repositories/prisma-storage.repository.ts
+│   │   │       └── dtos/
 │   │   ├── clients/
+│   │   │   ├── clients.module.ts
+│   │   │   ├── application/use-cases/
+│   │   │   │   ├── create-client.use-case.ts
+│   │   │   │   ├── list-clients.use-case.ts
+│   │   │   │   ├── get-client.use-case.ts
+│   │   │   │   ├── regenerate-key.use-case.ts
+│   │   │   │   └── delete-client.use-case.ts
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/client.entity.ts
+│   │   │   │   └── repositories/client.repository.interface.ts
+│   │   │   └── infra/
+│   │   │       ├── controllers/clients.controller.ts
+│   │   │       ├── repositories/prisma-client.repository.ts
+│   │   │       └── dtos/
 │   │   └── health/
 │   └── shared/
 │       ├── config/
@@ -254,17 +284,17 @@ A API estará disponível em `http://localhost:3000/api/v1`.
 }
 ```
 
-### Storages
+### Storages _(requer admin)_
 
-| Método   | Endpoint          | Descrição                        |
-|----------|-------------------|----------------------------------|
-| `POST`   | `/storages`       | Cria configuração de storage     |
-| `GET`    | `/storages`       | Lista todos os storages          |
-| `GET`    | `/storages/:id`   | Busca storage por ID             |
-| `PUT`    | `/storages/:id`   | Atualiza storage                 |
-| `DELETE` | `/storages/:id`   | Remove storage                   |
+| Método   | Endpoint          | Descrição                                              |
+|----------|-------------------|--------------------------------------------------------|
+| `POST`   | `/storages`       | Cria configuração de storage                           |
+| `GET`    | `/storages`       | Lista todos os storages                                |
+| `GET`    | `/storages/:id`   | Busca storage por ID                                   |
+| `PUT`    | `/storages/:id`   | Atualiza storage                                       |
+| `DELETE` | `/storages/:id`   | Remove storage (409 se houver arquivos associados)     |
 
-### Clients
+### Clients _(requer admin)_
 
 | Método   | Endpoint                        | Descrição                  |
 |----------|---------------------------------|----------------------------|
@@ -290,7 +320,20 @@ Todos os endpoints (exceto `/health`) requerem o header:
 x-api-key: fsk_your_api_key_here
 ```
 
-O guard valida a chave no banco e verifica se o cliente está ativo. Para marcar um endpoint como público:
+O guard valida a chave no banco e verifica se o cliente está ativo.
+
+### Níveis de acesso
+
+| Recurso        | Cliente normal | Cliente admin (`isAdmin: true`) |
+|----------------|-----------------|----------------------------------|
+| `/files`       | ✅              | ✅                               |
+| `/storages`    | ❌ 403          | ✅                               |
+| `/clients`     | ❌ 403          | ✅                               |
+| `/health`      | ✅ (público)    | ✅ (público)                     |
+
+O seed cria o cliente padrão com `isAdmin: true`. Novos clientes criados via `POST /clients` terão `isAdmin: false` por padrão — ajuste diretamente no banco se necessário.
+
+Para marcar um endpoint como público:
 
 ```typescript
 import { Public } from '@/modules/auth/infra/decorators/public.decorator';
@@ -325,14 +368,26 @@ npm run test:watch
 
 # Cobertura
 npm run test:cov
+
+# Testes e2e (mock de banco/S3, não requer infra real)
+npm run test:e2e
+
+# Lint
+npm run lint
 ```
 
 Testes unitários cobrem:
 
 - `GenerateUploadUrlUseCase` — fluxo feliz, storage inexistente, key sem folder
 - `DeleteFileUseCase` — deleção, arquivo inexistente, storage inexistente
+- `DeleteStorageUseCase` — deleção, storage inexistente, 409 quando há arquivos associados
 - `ApiKeyGuard` — rota pública, sem key, key inválida, cliente inativo, acesso válido
 - `S3StorageProvider` — geração de URLs assinadas, deleção, propagação de erros
+
+Testes e2e cobrem:
+- Bootstrap da aplicação completo (com mocks de PrismaService e S3Client)
+- `GET /api/v1/health` → 200
+- `GET /api/v1/files` sem API key → 401
 
 ---
 
@@ -359,6 +414,8 @@ docker compose exec app npx ts-node prisma/seed.ts
 ```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
+
+> **Nota:** O entrypoint de produção compilado é `dist/src/main.js`. O `package.json` e o `Dockerfile` estão configurados com o caminho correto (`node dist/src/main`).
 
 ---
 
