@@ -11,7 +11,9 @@ export interface RegisterFileInput {
   fileName: string;
   mimeType: string;
   size?: number;
+  status?: "PENDING" | "UPLOADED";
   storageId: string;
+  clientId: string;
 }
 
 @Injectable()

@@ -16,6 +16,11 @@ export interface GetFileUrlOutput {
   mimeType: string;
 }
 
+export interface FileAccessContext {
+  clientId: string;
+  isAdmin: boolean;
+}
+
 @Injectable()
 export class GetFileUrlUseCase {
   constructor(
@@ -24,10 +29,17 @@ export class GetFileUrlUseCase {
     private readonly prisma: PrismaService,
   ) {}
 
-  async execute(fileId: string): Promise<GetFileUrlOutput> {
+  async execute(
+    fileId: string,
+    access: FileAccessContext,
+  ): Promise<GetFileUrlOutput> {
     const file = await this.fileRepository.findById(fileId);
 
     if (!file) {
+      throw new NotFoundException(`File with ID "${fileId}" not found.`);
+    }
+
+    if (!access.isAdmin && file.clientId !== access.clientId) {
       throw new NotFoundException(`File with ID "${fileId}" not found.`);
     }
 

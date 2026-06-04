@@ -16,6 +16,7 @@ export interface GenerateUploadUrlInput {
   folder?: string;
   fileName: string;
   mimeType: string;
+  clientId: string;
 }
 
 export interface GenerateUploadUrlOutput {
@@ -67,7 +68,9 @@ export class GenerateUploadUrlUseCase {
       key,
       fileName,
       mimeType,
+      status: "PENDING",
       storageId: storage.id,
+      clientId: input.clientId,
     });
 
     return {

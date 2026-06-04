@@ -24,6 +24,7 @@ export interface UploadFileInput {
   mimeType: string;
   buffer: Buffer;
   size: number;
+  clientId: string;
 }
 
 @Injectable()
@@ -75,7 +76,9 @@ export class UploadFileUseCase {
       fileName: input.fileName,
       mimeType: input.mimeType,
       size: input.size,
+      status: "UPLOADED",
       storageId: storage.id,
+      clientId: input.clientId,
     });
   }
 }

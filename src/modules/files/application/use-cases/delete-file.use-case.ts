@@ -8,6 +8,7 @@ import {
   FileRepository,
 } from "../../domain/repositories/file.repository.interface";
 import { PrismaService } from "../../../../shared/database/prisma.service";
+import { FileAccessContext } from "./get-file-url.use-case";
 
 @Injectable()
 export class DeleteFileUseCase {
@@ -17,10 +18,14 @@ export class DeleteFileUseCase {
     private readonly prisma: PrismaService,
   ) {}
 
-  async execute(fileId: string): Promise<void> {
+  async execute(fileId: string, access: FileAccessContext): Promise<void> {
     const file = await this.fileRepository.findById(fileId);
 
     if (!file) {
+      throw new NotFoundException(`File with ID "${fileId}" not found.`);
+    }
+
+    if (!access.isAdmin && file.clientId !== access.clientId) {
       throw new NotFoundException(`File with ID "${fileId}" not found.`);
     }
 

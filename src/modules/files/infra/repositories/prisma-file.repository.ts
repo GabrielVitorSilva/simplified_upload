@@ -28,9 +28,12 @@ export class PrismaFileRepository implements FileRepository {
   }
 
   async findAll(options: FindAllFilesOptions): Promise<PaginatedFiles> {
-    const { page, limit, storageId } = options;
+    const { page, limit, storageId, clientId } = options;
     const skip = (page - 1) * limit;
-    const where = storageId ? { storageId } : {};
+    const where = {
+      ...(storageId ? { storageId } : {}),
+      ...(clientId ? { clientId } : {}),
+    };
 
     const [data, total] = await Promise.all([
       this.prisma.file.findMany({
@@ -49,6 +52,17 @@ export class PrismaFileRepository implements FileRepository {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async updateStatus(
+    id: string,
+    status: "PENDING" | "UPLOADED",
+  ): Promise<FileEntity> {
+    const file = await this.prisma.file.update({
+      where: { id },
+      data: { status },
+    });
+    return new FileEntity(file);
   }
 
   async delete(id: string): Promise<void> {

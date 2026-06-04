@@ -11,6 +11,7 @@ const mockStorageProvider = {
 
 const mockFileRepository = {
   create: jest.fn(),
+  updateStatus: jest.fn(),
 };
 
 const mockPrismaService = {
@@ -57,6 +58,8 @@ describe("UploadFileUseCase", () => {
       mimeType: "image/png",
       size: 123,
       storageId: "storage-id",
+      clientId: "client-id",
+      status: "UPLOADED",
     };
 
     mockPrismaService.storage.findUnique.mockResolvedValue(storage);
@@ -70,6 +73,7 @@ describe("UploadFileUseCase", () => {
       mimeType: "image/png",
       buffer: Buffer.from("image"),
       size: 123,
+      clientId: "client-id",
     });
 
     expect(result).toBe(file);
@@ -85,6 +89,8 @@ describe("UploadFileUseCase", () => {
         mimeType: "image/png",
         size: 123,
         storageId: "storage-id",
+        clientId: "client-id",
+        status: "UPLOADED",
       }),
     );
   });
@@ -99,6 +105,7 @@ describe("UploadFileUseCase", () => {
         mimeType: "image/png",
         buffer: Buffer.from("image"),
         size: 123,
+        clientId: "client-id",
       }),
     ).rejects.toThrow(NotFoundException);
 
@@ -122,6 +129,7 @@ describe("UploadFileUseCase", () => {
         mimeType: "image/png",
         buffer: Buffer.from("image"),
         size: 123,
+        clientId: "client-id",
       }),
     ).rejects.toThrow(BadGatewayException);
 

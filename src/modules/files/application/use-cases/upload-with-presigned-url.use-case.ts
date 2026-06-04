@@ -1,4 +1,13 @@
-import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
+import {
+  BadGatewayException,
+  Inject,
+  Injectable,
+  Logger,
+} from "@nestjs/common";
+import {
+  FILE_REPOSITORY,
+  FileRepository,
+} from "../../domain/repositories/file.repository.interface";
 import {
   GenerateUploadUrlOutput,
   GenerateUploadUrlUseCase,
@@ -10,6 +19,7 @@ export interface UploadWithPresignedUrlInput {
   fileName: string;
   mimeType: string;
   buffer: Buffer;
+  clientId: string;
 }
 
 export interface UploadWithPresignedUrlOutput extends GenerateUploadUrlOutput {
@@ -22,6 +32,7 @@ export class UploadWithPresignedUrlUseCase {
 
   constructor(
     private readonly generateUploadUrlUseCase: GenerateUploadUrlUseCase,
+    @Inject(FILE_REPOSITORY) private readonly fileRepository: FileRepository,
   ) {}
 
   async execute(
@@ -32,6 +43,7 @@ export class UploadWithPresignedUrlUseCase {
       folder: input.folder,
       fileName: input.fileName,
       mimeType: input.mimeType,
+      clientId: input.clientId,
     });
 
     try {
@@ -60,8 +72,14 @@ export class UploadWithPresignedUrlUseCase {
       );
     }
 
+    const file = await this.fileRepository.updateStatus(
+      presigned.fileId,
+      "UPLOADED",
+    );
+
     return {
       ...presigned,
+      fileId: file.id,
       uploaded: true,
     };
   }

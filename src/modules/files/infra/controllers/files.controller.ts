@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
@@ -31,6 +32,13 @@ import { UploadFileUseCase } from "../../application/use-cases/upload-file.use-c
 import { UploadWithPresignedUrlUseCase } from "../../application/use-cases/upload-with-presigned-url.use-case";
 import { GenerateUploadUrlDto } from "../dtos/generate-upload-url.dto";
 import { ListFilesDto } from "../dtos/list-files.dto";
+
+interface AuthenticatedRequest {
+  client: {
+    id: string;
+    isAdmin: boolean;
+  };
+}
 
 @ApiTags("Files")
 @ApiSecurity("x-api-key")
@@ -63,8 +71,14 @@ export class FilesController {
       },
     },
   })
-  async generateUploadUrl(@Body() dto: GenerateUploadUrlDto) {
-    return this.generateUploadUrlUseCase.execute(dto);
+  async generateUploadUrl(
+    @Body() dto: GenerateUploadUrlDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.generateUploadUrlUseCase.execute({
+      ...dto,
+      clientId: request.client.id,
+    });
   }
 
   @Post("upload")
@@ -119,6 +133,7 @@ export class FilesController {
   async uploadFile(
     @Body("storageName") storageName: string,
     @Body("folder") folder: string | undefined,
+    @Req() request: AuthenticatedRequest,
     @UploadedFile() file?: any,
   ) {
     if (!storageName) {
@@ -136,6 +151,7 @@ export class FilesController {
       mimeType: file.mimetype,
       buffer: file.buffer,
       size: file.size,
+      clientId: request.client.id,
     });
   }
 
@@ -188,6 +204,7 @@ export class FilesController {
   async testPresignedUpload(
     @Body("storageName") storageName: string,
     @Body("folder") folder: string | undefined,
+    @Req() request: AuthenticatedRequest,
     @UploadedFile() file?: any,
   ) {
     if (!storageName) {
@@ -204,6 +221,7 @@ export class FilesController {
       fileName: file.originalname,
       mimeType: file.mimetype,
       buffer: file.buffer,
+      clientId: request.client.id,
     });
   }
 
@@ -229,8 +247,14 @@ export class FilesController {
       },
     },
   })
-  async getFileUrl(@Param("id", ParseUUIDPipe) id: string) {
-    return this.getFileUrlUseCase.execute(id);
+  async getFileUrl(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.getFileUrlUseCase.execute(id, {
+      clientId: request.client.id,
+      isAdmin: request.client.isAdmin,
+    });
   }
 
   @Delete(":id")
@@ -247,8 +271,14 @@ export class FilesController {
   })
   @ApiResponse({ status: 204, description: "File deleted" })
   @ApiResponse({ status: 404, description: "File not found" })
-  async deleteFile(@Param("id", ParseUUIDPipe) id: string) {
-    return this.deleteFileUseCase.execute(id);
+  async deleteFile(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.deleteFileUseCase.execute(id, {
+      clientId: request.client.id,
+      isAdmin: request.client.isAdmin,
+    });
   }
 
   @Get()
@@ -269,11 +299,16 @@ export class FilesController {
       },
     },
   })
-  async listFiles(@Query() query: ListFilesDto) {
+  async listFiles(
+    @Query() query: ListFilesDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
     return this.listFilesUseCase.execute({
       page: query.page ? parseInt(query.page, 10) : 1,
       limit: query.limit ? parseInt(query.limit, 10) : 10,
       storageId: query.storageId,
+      clientId: request.client.id,
+      isAdmin: request.client.isAdmin,
     });
   }
 }

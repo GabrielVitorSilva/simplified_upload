@@ -4,6 +4,7 @@ export interface FindAllFilesOptions {
   page: number;
   limit: number;
   storageId?: string;
+  clientId?: string;
 }
 
 export interface PaginatedFiles {
@@ -19,7 +20,9 @@ export interface CreateFileData {
   fileName: string;
   mimeType: string;
   size?: number;
+  status?: "PENDING" | "UPLOADED";
   storageId: string;
+  clientId?: string;
 }
 
 export interface FileRepository {
@@ -27,6 +30,7 @@ export interface FileRepository {
   findById(id: string): Promise<FileEntity | null>;
   findByKey(key: string): Promise<FileEntity | null>;
   findAll(options: FindAllFilesOptions): Promise<PaginatedFiles>;
+  updateStatus(id: string, status: "PENDING" | "UPLOADED"): Promise<FileEntity>;
   delete(id: string): Promise<void>;
 }
 

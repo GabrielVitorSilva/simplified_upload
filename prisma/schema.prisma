@@ -17,6 +17,7 @@ model Client {
   active    Boolean  @default(true)
   isAdmin   Boolean  @default(false) @map("is_admin")
   createdAt DateTime @default(now()) @map("created_at")
+  files     File[]
 
   @@map("clients")
 }
@@ -39,10 +40,18 @@ model File {
   fileName  String   @map("file_name")
   mimeType  String   @map("mime_type")
   size      Int?
+  status    FileStatus @default(PENDING)
   storageId String   @map("storage_id")
   storage   Storage  @relation(fields: [storageId], references: [id])
+  clientId  String?  @map("client_id")
+  client    Client?  @relation(fields: [clientId], references: [id])
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("files")
+}
+
+enum FileStatus {
+  PENDING
+  UPLOADED
 }

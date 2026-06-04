@@ -10,6 +10,7 @@ const mockStorageProvider = {
   generateUploadUrl: jest.fn(),
   generateDownloadUrl: jest.fn(),
   deleteObject: jest.fn(),
+  uploadObject: jest.fn(),
 };
 
 const mockFileRepository = {
@@ -17,6 +18,7 @@ const mockFileRepository = {
   findById: jest.fn(),
   findByKey: jest.fn(),
   findAll: jest.fn(),
+  updateStatus: jest.fn(),
   delete: jest.fn(),
 };
 
@@ -66,6 +68,8 @@ describe("GenerateUploadUrlUseCase", () => {
       fileName: "avatar.png",
       mimeType: "image/png",
       storageId: "storage-id",
+      clientId: "client-id",
+      status: "PENDING",
     };
 
     mockPrismaService.storage.findUnique.mockResolvedValue(mockStorage);
@@ -81,6 +85,7 @@ describe("GenerateUploadUrlUseCase", () => {
       folder: "avatars",
       fileName: "avatar.png",
       mimeType: "image/png",
+      clientId: "client-id",
     });
 
     expect(result).toMatchObject({
@@ -106,6 +111,8 @@ describe("GenerateUploadUrlUseCase", () => {
         fileName: "avatar.png",
         mimeType: "image/png",
         storageId: "storage-id",
+        clientId: "client-id",
+        status: "PENDING",
       }),
     );
   });
@@ -118,6 +125,7 @@ describe("GenerateUploadUrlUseCase", () => {
         storageName: "nonexistent",
         fileName: "avatar.png",
         mimeType: "image/png",
+        clientId: "client-id",
       }),
     ).rejects.toThrow(NotFoundException);
   });
@@ -133,6 +141,8 @@ describe("GenerateUploadUrlUseCase", () => {
       key: "uuid.png",
       fileName: "img.png",
       storageId: "storage-id",
+      clientId: "client-id",
+      status: "PENDING",
     };
 
     mockPrismaService.storage.findUnique.mockResolvedValue(mockStorage);
@@ -147,6 +157,7 @@ describe("GenerateUploadUrlUseCase", () => {
       storageName: "default",
       fileName: "img.png",
       mimeType: "image/png",
+      clientId: "client-id",
     });
 
     // Key should NOT contain a folder prefix

@@ -16,6 +16,7 @@ const mockFileRepository = {
   findById: jest.fn(),
   findByKey: jest.fn(),
   findAll: jest.fn(),
+  updateStatus: jest.fn(),
   delete: jest.fn(),
 };
 
@@ -51,6 +52,7 @@ describe("DeleteFileUseCase", () => {
       id: "file-id",
       key: "avatars/photo.jpg",
       storageId: "storage-id",
+      clientId: "client-id",
     };
 
     const mockStorage = {
@@ -64,7 +66,7 @@ describe("DeleteFileUseCase", () => {
     mockStorageProvider.deleteObject.mockResolvedValue(undefined);
     mockFileRepository.delete.mockResolvedValue(undefined);
 
-    await useCase.execute("file-id");
+    await useCase.execute("file-id", { clientId: "client-id", isAdmin: false });
 
     expect(mockFileRepository.findById).toHaveBeenCalledWith("file-id");
     expect(mockStorageProvider.deleteObject).toHaveBeenCalledWith({
@@ -77,9 +79,12 @@ describe("DeleteFileUseCase", () => {
   it("should throw NotFoundException when file does not exist", async () => {
     mockFileRepository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute("nonexistent-id")).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      useCase.execute("nonexistent-id", {
+        clientId: "client-id",
+        isAdmin: false,
+      }),
+    ).rejects.toThrow(NotFoundException);
 
     expect(mockStorageProvider.deleteObject).not.toHaveBeenCalled();
     expect(mockFileRepository.delete).not.toHaveBeenCalled();
@@ -90,12 +95,31 @@ describe("DeleteFileUseCase", () => {
       id: "file-id",
       key: "photo.jpg",
       storageId: "storage-id",
+      clientId: "client-id",
     };
 
     mockFileRepository.findById.mockResolvedValue(mockFile);
     mockPrismaService.storage.findUnique.mockResolvedValue(null);
 
-    await expect(useCase.execute("file-id")).rejects.toThrow(NotFoundException);
+    await expect(
+      useCase.execute("file-id", { clientId: "client-id", isAdmin: false }),
+    ).rejects.toThrow(NotFoundException);
+
+    expect(mockStorageProvider.deleteObject).not.toHaveBeenCalled();
+    expect(mockFileRepository.delete).not.toHaveBeenCalled();
+  });
+
+  it("should throw NotFoundException when non-admin does not own the file", async () => {
+    mockFileRepository.findById.mockResolvedValue({
+      id: "file-id",
+      key: "photo.jpg",
+      storageId: "storage-id",
+      clientId: "other-client-id",
+    });
+
+    await expect(
+      useCase.execute("file-id", { clientId: "client-id", isAdmin: false }),
+    ).rejects.toThrow(NotFoundException);
 
     expect(mockStorageProvider.deleteObject).not.toHaveBeenCalled();
     expect(mockFileRepository.delete).not.toHaveBeenCalled();

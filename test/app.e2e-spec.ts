@@ -43,7 +43,9 @@ const file = {
   fileName: "avatar.png",
   mimeType: "image/png",
   size: 123,
+  status: "UPLOADED",
   storageId,
+  clientId: normalClient.id,
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
   updatedAt: new Date("2024-01-01T00:00:00.000Z"),
 };
@@ -327,6 +329,11 @@ describe("App (e2e)", () => {
         totalPages: 1,
       });
       expect(response.body.data[0]).toMatchObject({ id: fileId });
+      expect(mockPrisma.file.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { clientId: normalClient.id },
+        }),
+      );
     });
 
     it("POST /api/v1/files/upload-url generates a presigned URL", async () => {
@@ -350,6 +357,14 @@ describe("App (e2e)", () => {
         uploadUrl: "https://s3.example/presigned",
         expiresIn: 300,
       });
+      expect(mockPrisma.file.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            clientId: normalClient.id,
+            status: "PENDING",
+          }),
+        }),
+      );
     });
 
     it("POST /api/v1/files/upload uploads multipart through the API", async () => {
@@ -371,6 +386,7 @@ describe("App (e2e)", () => {
       expect(response.body).toMatchObject({
         id: fileId,
         fileName: "avatar.png",
+        status: "UPLOADED",
         storageId,
       });
       expect(mockS3Client.send).toHaveBeenCalled();
@@ -380,6 +396,7 @@ describe("App (e2e)", () => {
       authenticateAs(normalClient);
       mockPrisma.storage.findUnique.mockResolvedValueOnce(storage);
       mockPrisma.file.create.mockResolvedValueOnce(file);
+      mockPrisma.file.update.mockResolvedValueOnce(file);
 
       const response = await request(app.getHttpServer())
         .post("/api/v1/files/upload-url/test")

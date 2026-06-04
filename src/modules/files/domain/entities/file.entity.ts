@@ -4,7 +4,9 @@ export class FileEntity {
   fileName: string;
   mimeType: string;
   size: number | null;
+  status: "PENDING" | "UPLOADED";
   storageId: string;
+  clientId: string | null;
   createdAt: Date;
   updatedAt: Date;
 

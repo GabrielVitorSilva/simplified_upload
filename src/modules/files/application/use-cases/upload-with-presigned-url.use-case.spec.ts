@@ -5,6 +5,7 @@ import { GenerateUploadUrlUseCase } from "./generate-upload-url.use-case";
 describe("UploadWithPresignedUrlUseCase", () => {
   let useCase: UploadWithPresignedUrlUseCase;
   let generateUploadUrlUseCase: jest.Mocked<GenerateUploadUrlUseCase>;
+  let fileRepository: { updateStatus: jest.Mock };
   let loggerErrorSpy: jest.SpyInstance;
   const originalFetch = global.fetch;
 
@@ -13,7 +14,13 @@ describe("UploadWithPresignedUrlUseCase", () => {
     generateUploadUrlUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GenerateUploadUrlUseCase>;
-    useCase = new UploadWithPresignedUrlUseCase(generateUploadUrlUseCase);
+    fileRepository = {
+      updateStatus: jest.fn(),
+    };
+    useCase = new UploadWithPresignedUrlUseCase(
+      generateUploadUrlUseCase,
+      fileRepository as any,
+    );
     global.fetch = jest.fn();
   });
 
@@ -30,6 +37,10 @@ describe("UploadWithPresignedUrlUseCase", () => {
       uploadUrl: "https://s3.example/upload",
       expiresIn: 300,
     });
+    fileRepository.updateStatus.mockResolvedValue({
+      id: "file-id",
+      key: "avatars/generated.png",
+    });
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
 
     const result = await useCase.execute({
@@ -38,6 +49,7 @@ describe("UploadWithPresignedUrlUseCase", () => {
       fileName: "avatar.png",
       mimeType: "image/png",
       buffer: Buffer.from("image"),
+      clientId: "client-id",
     });
 
     expect(result).toEqual({
@@ -54,6 +66,10 @@ describe("UploadWithPresignedUrlUseCase", () => {
       },
       body: expect.any(Blob),
     });
+    expect(fileRepository.updateStatus).toHaveBeenCalledWith(
+      "file-id",
+      "UPLOADED",
+    );
   });
 
   it("throws BadGatewayException when the presigned upload returns a non-2xx response", async () => {
@@ -71,6 +87,7 @@ describe("UploadWithPresignedUrlUseCase", () => {
         fileName: "avatar.png",
         mimeType: "image/png",
         buffer: Buffer.from("image"),
+        clientId: "client-id",
       }),
     ).rejects.toThrow(BadGatewayException);
   });
