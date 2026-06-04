@@ -37,7 +37,11 @@ export class HealthController {
   @Get()
   @Public()
   @HealthCheck()
-  @ApiOperation({ summary: "Health check endpoint" })
+  @ApiOperation({
+    summary: "Health check endpoint",
+    description:
+      "Public endpoint. Use it to verify that the API is running and can reach the database. It does not require x-api-key.",
+  })
   check() {
     return this.health.check([() => this.dbHealth.isHealthy("database")]);
   }

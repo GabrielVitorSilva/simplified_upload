@@ -41,7 +41,11 @@ export class ClientsController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: "Create a new API client" })
+  @ApiOperation({
+    summary: "Create a new API client",
+    description:
+      "Admin endpoint. Creates an API client and returns its API key once. Use this API key in the x-api-key header to call protected endpoints. New clients are not admins by default.",
+  })
   @ApiResponse({
     status: 201,
     description: "Client created with API key",
@@ -61,7 +65,11 @@ export class ClientsController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List all clients" })
+  @ApiOperation({
+    summary: "List all clients",
+    description:
+      "Admin endpoint. Lists clients without exposing their API keys. Use the returned id as clientId for GET /clients/{id}, DELETE /clients/{id}, or PATCH /clients/{id}/regenerate-key.",
+  })
   async findAll(): Promise<Omit<ClientEntity, "apiKey">[]> {
     const clients = await this.listClientsUseCase.execute();
     return clients.map(
@@ -70,8 +78,16 @@ export class ClientsController {
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get a client by ID" })
-  @ApiParam({ name: "id", description: "Client UUID" })
+  @ApiOperation({
+    summary: "Get a client by ID",
+    description:
+      "Admin endpoint. Shows one client without exposing the API key. Get the id from GET /clients or from the response of POST /clients.",
+  })
+  @ApiParam({
+    name: "id",
+    description:
+      "Client UUID. Get this value from GET /clients or the response of POST /clients.",
+  })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<Omit<ClientEntity, "apiKey">> {
@@ -81,8 +97,16 @@ export class ClientsController {
   }
 
   @Patch(":id/regenerate-key")
-  @ApiOperation({ summary: "Regenerate API key for a client" })
-  @ApiParam({ name: "id", description: "Client UUID" })
+  @ApiOperation({
+    summary: "Regenerate API key for a client",
+    description:
+      "Admin endpoint. Invalidates the old API key and returns a new one. Save the returned apiKey immediately; normal list/detail endpoints do not show API keys.",
+  })
+  @ApiParam({
+    name: "id",
+    description:
+      "Client UUID. Get this value from GET /clients or the response of POST /clients.",
+  })
   @ApiResponse({
     status: 200,
     description: "New API key generated",
@@ -96,8 +120,15 @@ export class ClientsController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Delete a client" })
-  @ApiParam({ name: "id", description: "Client UUID" })
+  @ApiOperation({
+    summary: "Delete a client",
+    description:
+      "Admin endpoint. Deletes the API client, making its API key unusable. Get the id from GET /clients.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "Client UUID. Get this value from GET /clients.",
+  })
   @ApiResponse({ status: 204, description: "Client deleted" })
   async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteClientUseCase.execute(id);

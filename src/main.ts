@@ -29,7 +29,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle("File Service API")
     .setDescription(
-      "Centralized file management service. Upload files directly to S3 using presigned URLs.",
+      "Centralized file management service. Start by running the seed and copying the generated API key. Click Authorize and paste that key as x-api-key. Admin keys can create clients and storages. File endpoints use storageName from GET /storages and fileId from upload/list responses.",
     )
     .setVersion("1.0")
     .addApiKey({ type: "apiKey", name: "x-api-key", in: "header" }, "x-api-key")

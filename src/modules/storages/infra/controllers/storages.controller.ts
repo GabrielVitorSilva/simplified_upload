@@ -42,7 +42,11 @@ export class StoragesController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: "Create a new storage configuration" })
+  @ApiOperation({
+    summary: "Create a new storage configuration",
+    description:
+      "Admin endpoint. Registers an existing S3 bucket so upload endpoints can use it. The response id is storageId; the name is storageName for /files upload endpoints.",
+  })
   @ApiResponse({ status: 201, description: "Storage created" })
   @ApiResponse({ status: 409, description: "Storage name already exists" })
   async create(@Body() dto: CreateStorageDto): Promise<StorageEntity> {
@@ -50,14 +54,26 @@ export class StoragesController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List all storage configurations" })
+  @ApiOperation({
+    summary: "List all storage configurations",
+    description:
+      "Admin endpoint. Use this to find storageName for file uploads and storageId for filtering files or updating/deleting a storage.",
+  })
   async findAll(): Promise<StorageEntity[]> {
     return this.listStoragesUseCase.execute();
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get a storage by ID" })
-  @ApiParam({ name: "id", description: "Storage UUID" })
+  @ApiOperation({
+    summary: "Get a storage by ID",
+    description:
+      "Admin endpoint. Shows bucket and region for a storage. Get the id from GET /storages or POST /storages.",
+  })
+  @ApiParam({
+    name: "id",
+    description:
+      "Storage UUID. Get this value from GET /storages or the response of POST /storages.",
+  })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<StorageEntity> {
@@ -65,8 +81,15 @@ export class StoragesController {
   }
 
   @Put(":id")
-  @ApiOperation({ summary: "Update a storage configuration" })
-  @ApiParam({ name: "id", description: "Storage UUID" })
+  @ApiOperation({
+    summary: "Update a storage configuration",
+    description:
+      "Admin endpoint. Changes the bucket or region used by this storage. Get the id from GET /storages.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "Storage UUID. Get this value from GET /storages.",
+  })
   async update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateStorageDto,
@@ -76,8 +99,15 @@ export class StoragesController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Delete a storage configuration" })
-  @ApiParam({ name: "id", description: "Storage UUID" })
+  @ApiOperation({
+    summary: "Delete a storage configuration",
+    description:
+      "Admin endpoint. Deletes the storage configuration. It returns 409 if files are still associated with this storage; delete those files first.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "Storage UUID. Get this value from GET /storages.",
+  })
   @ApiResponse({ status: 204, description: "Storage deleted" })
   @ApiResponse({ status: 409, description: "Storage has associated files" })
   async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {

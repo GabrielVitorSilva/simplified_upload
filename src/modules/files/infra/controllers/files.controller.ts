@@ -49,7 +49,7 @@ export class FilesController {
   @ApiOperation({
     summary: "Generate a presigned S3 upload URL",
     description:
-      "Returns a presigned URL for direct browser/client upload to S3. The backend never receives the file.",
+      "Use this in real client applications. Send storageName from GET /storages, optional folder, original fileName, and mimeType. The response returns fileId, key, and uploadUrl. Then upload the binary file directly to uploadUrl with HTTP PUT and the same Content-Type.",
   })
   @ApiResponse({
     status: 201,
@@ -73,7 +73,7 @@ export class FilesController {
   @ApiOperation({
     summary: "Upload a file through the API",
     description:
-      "Helper endpoint for manual uploads in Swagger. For client applications, prefer POST /files/upload-url and direct upload to S3.",
+      "Swagger/manual helper. The backend receives the multipart file and uploads it to S3 with the configured AWS credentials. Use storageName from GET /storages. For real client apps, prefer POST /files/upload-url and direct upload to S3.",
   })
   @ApiBody({
     schema: {
@@ -82,15 +82,20 @@ export class FilesController {
       properties: {
         storageName: {
           type: "string",
+          description:
+            "Storage name from GET /storages or POST /storages response. This is not the storage UUID.",
           example: "default",
         },
         folder: {
           type: "string",
+          description:
+            "Optional S3 prefix/folder. You can choose any path, for example avatars or documents/2026.",
           example: "avatars",
         },
         file: {
           type: "string",
           format: "binary",
+          description: "File selected from your machine.",
         },
       },
     },
@@ -140,7 +145,7 @@ export class FilesController {
   @ApiOperation({
     summary: "Test upload through a presigned URL",
     description:
-      "Helper endpoint for Swagger: it generates a presigned URL and then uploads the provided file to that URL with HTTP PUT.",
+      "Swagger/manual helper to validate the presigned URL flow. It receives a file, generates a presigned URL using storageName from GET /storages, then performs the HTTP PUT to that URL. Use this to test S3 permissions and presigned upload behavior without leaving Swagger.",
   })
   @ApiBody({
     schema: {
@@ -149,15 +154,20 @@ export class FilesController {
       properties: {
         storageName: {
           type: "string",
+          description:
+            "Storage name from GET /storages or POST /storages response. This is not the storage UUID.",
           example: "default",
         },
         folder: {
           type: "string",
+          description:
+            "Optional S3 prefix/folder. You can choose any path, for example avatars or documents/2026.",
           example: "avatars",
         },
         file: {
           type: "string",
           format: "binary",
+          description: "File selected from your machine.",
         },
       },
     },
@@ -198,8 +208,16 @@ export class FilesController {
   }
 
   @Get(":id/url")
-  @ApiOperation({ summary: "Get presigned download URL for a file" })
-  @ApiParam({ name: "id", description: "File UUID" })
+  @ApiOperation({
+    summary: "Get presigned download URL for a file",
+    description:
+      "Generates a temporary URL to download/read a stored file. Use the file id returned by POST /files/upload-url, POST /files/upload, POST /files/upload-url/test, or GET /files.",
+  })
+  @ApiParam({
+    name: "id",
+    description:
+      "File UUID. Get this value from upload responses or from GET /files.",
+  })
   @ApiResponse({
     status: 200,
     schema: {
@@ -217,8 +235,16 @@ export class FilesController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Delete a file from S3 and database" })
-  @ApiParam({ name: "id", description: "File UUID" })
+  @ApiOperation({
+    summary: "Delete a file from S3 and database",
+    description:
+      "Deletes the S3 object and removes its metadata from the database. Use the file id returned by upload responses or GET /files.",
+  })
+  @ApiParam({
+    name: "id",
+    description:
+      "File UUID. Get this value from upload responses or from GET /files.",
+  })
   @ApiResponse({ status: 204, description: "File deleted" })
   @ApiResponse({ status: 404, description: "File not found" })
   async deleteFile(@Param("id", ParseUUIDPipe) id: string) {
@@ -226,7 +252,11 @@ export class FilesController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List all files with pagination" })
+  @ApiOperation({
+    summary: "List all files with pagination",
+    description:
+      "Lists stored file metadata. Use returned file ids for GET /files/{id}/url or DELETE /files/{id}. To filter by storage, use storageId from GET /storages.",
+  })
   @ApiResponse({
     status: 200,
     schema: {

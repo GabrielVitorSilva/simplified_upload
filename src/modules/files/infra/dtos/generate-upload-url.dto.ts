@@ -3,7 +3,8 @@ import { IsString, IsNotEmpty, IsOptional, IsMimeType } from "class-validator";
 
 export class GenerateUploadUrlDto {
   @ApiProperty({
-    description: "Name of the storage to upload to",
+    description:
+      "Storage name configured in POST /storages. You can list available names with GET /storages using an admin API key.",
     example: "default",
   })
   @IsString()
@@ -11,7 +12,8 @@ export class GenerateUploadUrlDto {
   storageName: string;
 
   @ApiPropertyOptional({
-    description: "Folder/prefix path within the bucket",
+    description:
+      "Optional S3 folder/prefix. Use any logical path you want, for example avatars, invoices/2026, or user-uploads.",
     example: "avatars",
   })
   @IsString()
@@ -19,7 +21,8 @@ export class GenerateUploadUrlDto {
   folder?: string;
 
   @ApiProperty({
-    description: "Original file name",
+    description:
+      "Original file name shown in metadata. Use the name from the file selected by the user, for example avatar.png.",
     example: "avatar.png",
   })
   @IsString()
@@ -27,7 +30,8 @@ export class GenerateUploadUrlDto {
   fileName: string;
 
   @ApiProperty({
-    description: "MIME type of the file",
+    description:
+      "File MIME type. Browsers usually provide this as file.type, for example image/png or application/pdf.",
     example: "image/png",
   })
   @IsMimeType()
